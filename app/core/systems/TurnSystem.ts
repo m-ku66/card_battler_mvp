@@ -2,12 +2,15 @@ import { eventBus } from "../events/EventBus";
 import { GameEventType } from "../events/Events";
 import { BattlePhase, GamePhase, GameState } from "../models/Game";
 import { Mage } from "../models/Mage";
+import { CombatSystem } from "./CombatSystem";
 
 export class TurnSystem {
   private gameState: GameState;
+  private combatSystem: CombatSystem;
 
   constructor(initialState: GameState) {
     this.gameState = initialState;
+    this.combatSystem = new CombatSystem(this.gameState);
   }
 
   /**
@@ -51,6 +54,15 @@ export class TurnSystem {
   }
 
   /**
+   * Execute the spells selected by players
+   */
+  executeSpells(): void {
+    if (this.gameState.battlePhase === "execution") {
+      this.combatSystem.executeSpells();
+    }
+  }
+
+  /**
    * Start a new turn
    */
   startTurn(): void {
@@ -68,7 +80,7 @@ export class TurnSystem {
   }
 
   /**
-   * End the current turn
+   * End the current turn and execute spells when transitioning to execution phase
    */
   endTurn(): void {
     const currentPlayerId = this.getCurrentPlayerId();
@@ -84,12 +96,39 @@ export class TurnSystem {
     if (this.gameState.currentTurn % this.gameState.players.length === 0) {
       if (this.gameState.battlePhase === "spellSelection") {
         this.setBattlePhase("execution");
+
+        // Execute all spells when entering execution phase
+        this.executeSpells();
       } else {
         this.setBattlePhase("spellSelection");
+
+        // Regenerate magia for all mages at the end of a full turn
+        this.regenerateMagia();
       }
     }
 
     this.startTurn();
+  }
+
+  /**
+   * Regenerate magia for all mages at the end of a full turn
+   */
+  private regenerateMagia(): void {
+    this.gameState.players.forEach((player) => {
+      if (player.selectedMageId) {
+        const mage = this.gameState.mages[player.selectedMageId];
+        if (mage) {
+          const regenAmount = mage.magiaRegenRate;
+          mage.magia = Math.min(mage.magia + regenAmount, mage.maxMagia);
+
+          eventBus.emit(GameEventType.MAGIA_REGENERATED, {
+            mageId: mage.id,
+            amount: regenAmount,
+            newMagia: mage.magia,
+          });
+        }
+      }
+    });
   }
 
   /**

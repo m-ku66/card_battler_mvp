@@ -304,6 +304,47 @@ export default function GamePage() {
             </div>
           )}
 
+          {/* Battle Phase UI - Execution Phase */}
+          {gameState.phase === "battle" &&
+            gameState.battlePhase === "execution" && (
+              <div className="mt-4">
+                <h2 className="text-xl font-semibold mb-2">
+                  Spells Executing...
+                </h2>
+                <div className="p-4 bg-gray-50 rounded">
+                  <p>Watch as the spells take effect!</p>
+                  {/* We could add animations or visual effects here */}
+                </div>
+                <button
+                  onClick={() => endTurn()}
+                  className="mt-4 px-4 py-2 bg-green-500 text-white rounded cursor-pointer"
+                >
+                  Continue
+                </button>
+              </div>
+            )}
+
+          {/* Result Phase UI */}
+          {/* @ts-ignore */}
+          {gameState.phase === "result" && (
+            <div className="mt-8 text-center">
+              <h2 className="text-3xl font-bold mb-4">
+                {gameState.winner === currentPlayer.id ? "Victory!" : "Defeat!"}
+              </h2>
+              <p className="mb-4">
+                {gameState.winner === currentPlayer.id
+                  ? "Your opponent's mage has been defeated!"
+                  : "Your mage has been defeated!"}
+              </p>
+              <button
+                onClick={() => initializeGame()}
+                className="px-6 py-3 bg-blue-500 text-white rounded-lg text-lg"
+              >
+                Play Again
+              </button>
+            </div>
+          )}
+
           {/* Execution phase UI - show something different when spells are being executed */}
           {gameState.battlePhase === "execution" && (
             <div>

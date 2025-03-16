@@ -123,6 +123,29 @@ export const useGameStore = create<GameStore>((set, get) => ({
       }
     );
 
+    const unsubscribeDamageDealt = eventBus.on(
+      GameEventType.DAMAGE_DEALT,
+      (data) => {
+        console.log(`Damage dealt: ${data.amount} to ${data.targetId}`);
+        // We don't need to update state here since the CombatSystem already updated the mages directly
+        // But we'll force a re-render to show the updated health
+        set((state) => ({ gameState: { ...state.gameState } }));
+      }
+    );
+
+    const unsubscribeGameOver = eventBus.on(GameEventType.GAME_OVER, (data) => {
+      console.log(
+        `Game over! Winner: ${data.winnerId}, Reason: ${data.reason}`
+      );
+      set((state) => ({
+        gameState: {
+          ...state.gameState,
+          phase: "result",
+          winner: data.winnerId,
+        },
+      }));
+    });
+
     // Start the game
     turnSystem.startGame();
   },
