@@ -1,3 +1,4 @@
+// app/core/models/Game.ts
 import { Mage } from "./Mage";
 import { Player } from "./Player";
 import { Spell } from "./Spell";

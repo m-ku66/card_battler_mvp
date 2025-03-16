@@ -4,7 +4,7 @@ export const spells: Record<string, Spell> = {
   spell1: {
     id: "spell1",
     name: "Fireball",
-    description: "A ball of fire that deals damage to the target",
+    description: "A ball of fire that deals damage to the target and inflicts burn for 3 turns",
     magiaCost: 15,
     basePower: 50,
     castingTime: 0,

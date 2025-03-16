@@ -113,14 +113,36 @@ export class TurnSystem {
 
     // Set the turn order
     this.gameState.turnOrder = playerMages.map((pm) => pm.playerId);
+
+    // Debug logs
+    console.log("Calculated turn order:", this.gameState.turnOrder);
   }
 
   /**
    * Get the current player's ID based on turn order
    */
   private getCurrentPlayerId(): string {
-    const index = this.gameState.currentTurn % this.gameState.players.length;
-    return this.gameState.turnOrder[index];
+    // Debug logs
+    console.log("Current turn:", this.gameState.currentTurn);
+    console.log("Turn order:", this.gameState.turnOrder);
+
+    // Safety check: if turn order is empty, fallback to first player
+    if (
+      this.gameState.turnOrder.length === 0 &&
+      this.gameState.players.length > 0
+    ) {
+      console.log("Turn order is empty, using fallback");
+      // Add all players to the turn order as a fallback
+      this.gameState.turnOrder = this.gameState.players.map((p) => p.id);
+    }
+
+    const index = this.gameState.currentTurn % this.gameState.turnOrder.length;
+    const playerId = this.gameState.turnOrder[index];
+    console.log(
+      `Selected player ${playerId} for turn ${this.gameState.currentTurn}`
+    );
+
+    return playerId;
   }
 
   /**
