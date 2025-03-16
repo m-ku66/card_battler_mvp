@@ -4,7 +4,7 @@ export interface Player {
   id: string;
   name: string;
   selectedMageId: string | null;
-  studentRoster: Mage[]; // Roster of mages available to this player
+  studentRoster: string[]; // Roster of mages available to this player
   selectedGrimoireIds: string[];
   selectedSpellIds: string[]; // Currently selected spells for this turn
 }
