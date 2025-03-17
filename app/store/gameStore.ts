@@ -196,11 +196,22 @@ export const useGameStore = create<GameStore>((set, get) => ({
     set((state) => {
       const updatedPlayers = state.gameState.players.map((player) => {
         if (player.id === playerId) {
-          const selectedSpellIds = [...player.selectedSpellIds];
+          // Create a copy of the selected spells array
+          const selectedSpellIds = [...(player.selectedSpellIds || [])];
+
+          // Make sure the array is long enough to accommodate the slot index
           while (selectedSpellIds.length <= slotIndex) {
             selectedSpellIds.push("");
           }
+
+          // Set the spell ID at the specified slot
           selectedSpellIds[slotIndex] = spellId;
+
+          // Log to verify the spell is being saved
+          console.log(
+            `Player ${playerId} selected spell ${spellId} in slot ${slotIndex}`
+          );
+          console.log("Updated spell selection:", selectedSpellIds);
 
           return { ...player, selectedSpellIds };
         }

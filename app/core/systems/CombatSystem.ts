@@ -15,6 +15,16 @@ export class CombatSystem {
    * Process all spells selected for the current turn
    */
   executeSpells(): void {
+    // Debug: Log player states to see what spells are selected
+    console.log(
+      "Player states during spell execution:",
+      this.gameState.players.map((player) => ({
+        id: player.id,
+        selectedMageId: player.selectedMageId,
+        selectedSpellIds: player.selectedSpellIds,
+      }))
+    );
+
     // Get all selected spells from all players
     const spellActions: Array<{
       casterId: string;
