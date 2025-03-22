@@ -68,7 +68,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
   // Actions
   initializeGame: () => {
     // Create a new turn system with the initial game state
-    const turnSystem = new TurnSystem(initialGameState);
+    const turnSystem = new TurnSystem();
 
     set({ turnSystem });
 

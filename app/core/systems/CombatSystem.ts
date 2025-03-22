@@ -3,22 +3,24 @@ import { GameEventType } from "../events/Events";
 import { GameState } from "../models/Game";
 import { Mage } from "../models/Mage";
 import { Spell, SpellEffect } from "../models/Spell";
+import { useGameStore } from "../../store/gameStore";
 
 export class CombatSystem {
-  private gameState: GameState;
+  constructor() {}
 
-  constructor(gameState: GameState) {
-    this.gameState = gameState;
+  private getGameState(): GameState {
+    return useGameStore.getState().gameState;
   }
 
   /**
    * Process all spells selected for the current turn
    */
   executeSpells(): void {
+    const gameState = this.getGameState();
     // Debug: Log player states to see what spells are selected
     console.log(
       "Player states during spell execution:",
-      this.gameState.players.map((player) => ({
+      gameState.players.map((player) => ({
         id: player.id,
         selectedMageId: player.selectedMageId,
         selectedSpellIds: player.selectedSpellIds,
@@ -35,17 +37,17 @@ export class CombatSystem {
     }> = [];
 
     // Collect all selected spells for this turn
-    this.gameState.players.forEach((player) => {
+    gameState.players.forEach((player) => {
       const mageId = player.selectedMageId;
       if (!mageId) return;
 
-      const mage = this.gameState.mages[mageId];
+      const mage = gameState.mages[mageId];
       if (!mage) return;
 
       player.selectedSpellIds.forEach((spellId) => {
         if (!spellId) return;
 
-        const spell = this.gameState.spells[spellId];
+        const spell = gameState.spells[spellId];
         if (!spell) return;
 
         spellActions.push({
@@ -82,28 +84,25 @@ export class CombatSystem {
     casterMageId: string,
     spellId: string
   ): void {
-    const caster = this.gameState.players.find((p) => p.id === casterId);
+    const gameState = this.getGameState();
+    const caster = gameState.players.find((p) => p.id === casterId);
     if (!caster) return;
 
-    const casterMage = this.gameState.mages[casterMageId];
+    const casterMage = gameState.mages[casterMageId];
     if (!casterMage) return;
 
-    const spell = this.gameState.spells[spellId];
+    const spell = gameState.spells[spellId];
     if (!spell) return;
 
     // Find target (for simplicity, we'll just target the opponent's mage)
-    const targetPlayerId = this.gameState.players.find(
-      (p) => p.id !== casterId
-    )?.id;
+    const targetPlayerId = gameState.players.find((p) => p.id !== casterId)?.id;
     if (!targetPlayerId) return;
 
-    const targetPlayer = this.gameState.players.find(
-      (p) => p.id === targetPlayerId
-    );
+    const targetPlayer = gameState.players.find((p) => p.id === targetPlayerId);
     if (!targetPlayer || !targetPlayer.selectedMageId) return;
 
     const targetMageId = targetPlayer.selectedMageId;
-    const targetMage = this.gameState.mages[targetMageId];
+    const targetMage = gameState.mages[targetMageId];
     if (!targetMage) return;
 
     // Check if the caster has enough magia

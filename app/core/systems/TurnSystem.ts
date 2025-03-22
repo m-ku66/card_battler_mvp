@@ -3,14 +3,17 @@ import { GameEventType } from "../events/Events";
 import { BattlePhase, GamePhase, GameState } from "../models/Game";
 import { Mage } from "../models/Mage";
 import { CombatSystem } from "./CombatSystem";
+import { useGameStore } from "../../store/gameStore";
 
 export class TurnSystem {
-  private gameState: GameState;
   private combatSystem: CombatSystem;
 
-  constructor(initialState: GameState) {
-    this.gameState = initialState;
-    this.combatSystem = new CombatSystem(this.gameState);
+  constructor() {
+    this.combatSystem = new CombatSystem();
+  }
+
+  private getGameState(): GameState {
+    return useGameStore.getState().gameState;
   }
 
   /**
@@ -25,8 +28,15 @@ export class TurnSystem {
    * Set the current game phase
    */
   setPhase(phase: GamePhase): void {
-    const previousPhase = this.gameState.phase;
-    this.gameState.phase = phase;
+    const gameState = this.getGameState();
+    const previousPhase = gameState.phase;
+    // Update state via the store
+    useGameStore.setState((state) => ({
+      gameState: {
+        ...state.gameState,
+        phase,
+      },
+    }));
 
     eventBus.emit(GameEventType.PHASE_CHANGED, {
       previousPhase,
@@ -44,8 +54,16 @@ export class TurnSystem {
    * Set the current battle phase
    */
   setBattlePhase(phase: BattlePhase): void {
-    const previousPhase = this.gameState.battlePhase;
-    this.gameState.battlePhase = phase;
+    const gameState = this.getGameState();
+    const previousPhase = gameState.battlePhase;
+
+    // Update state via the store
+    useGameStore.setState((state) => ({
+      gameState: {
+        ...state.gameState,
+        battlePhase: phase,
+      },
+    }));
 
     eventBus.emit(GameEventType.BATTLE_PHASE_CHANGED, {
       previousPhase,
@@ -57,7 +75,8 @@ export class TurnSystem {
    * Execute the spells selected by players
    */
   executeSpells(): void {
-    if (this.gameState.battlePhase === "execution") {
+    const gameState = this.getGameState();
+    if (gameState.battlePhase === "execution") {
       this.combatSystem.executeSpells();
     }
   }
@@ -66,15 +85,16 @@ export class TurnSystem {
    * Start a new turn
    */
   startTurn(): void {
+    const gameState = this.getGameState();
     // Determine turn order based on mage agility
-    if (this.gameState.currentTurn === 0) {
+    if (gameState.currentTurn === 0) {
       this.calculateTurnOrder();
     }
 
     const currentPlayerId = this.getCurrentPlayerId();
 
     eventBus.emit(GameEventType.TURN_STARTED, {
-      turn: this.gameState.currentTurn,
+      turn: gameState.currentTurn,
       playerId: currentPlayerId,
     });
   }
@@ -83,18 +103,19 @@ export class TurnSystem {
    * End the current turn and execute spells when transitioning to execution phase
    */
   endTurn(): void {
+    const gameState = this.getGameState();
     const currentPlayerId = this.getCurrentPlayerId();
 
     eventBus.emit(GameEventType.TURN_ENDED, {
-      turn: this.gameState.currentTurn,
+      turn: gameState.currentTurn,
       playerId: currentPlayerId,
     });
 
-    this.gameState.currentTurn++;
+    gameState.currentTurn++;
 
     // If all players have taken a turn, switch battle phase
-    if (this.gameState.currentTurn % this.gameState.players.length === 0) {
-      if (this.gameState.battlePhase === "spellSelection") {
+    if (gameState.currentTurn % gameState.players.length === 0) {
+      if (gameState.battlePhase === "spellSelection") {
         this.setBattlePhase("execution");
 
         // Execute all spells when entering execution phase
@@ -114,9 +135,12 @@ export class TurnSystem {
    * Regenerate magia for all mages at the end of a full turn
    */
   private regenerateMagia(): void {
-    this.gameState.players.forEach((player) => {
+    const gameState = this.getGameState();
+
+    // Regenerate magia for all mages
+    gameState.players.forEach((player) => {
       if (player.selectedMageId) {
-        const mage = this.gameState.mages[player.selectedMageId];
+        const mage = gameState.mages[player.selectedMageId];
         if (mage) {
           const regenAmount = mage.magiaRegenRate;
           mage.magia = Math.min(mage.magia + regenAmount, mage.maxMagia);
@@ -135,12 +159,13 @@ export class TurnSystem {
    * Calculate the turn order based on mage agility
    */
   private calculateTurnOrder(): void {
+    const gameState = this.getGameState();
     const playerMages: Array<{ playerId: string; mage: Mage }> = [];
 
     // Get the selected mage for each player
-    this.gameState.players.forEach((player) => {
+    gameState.players.forEach((player) => {
       if (player.selectedMageId) {
-        const mage = this.gameState.mages[player.selectedMageId];
+        const mage = gameState.mages[player.selectedMageId];
         if (mage) {
           playerMages.push({ playerId: player.id, mage });
         }
@@ -151,34 +176,32 @@ export class TurnSystem {
     playerMages.sort((a, b) => b.mage.agility - a.mage.agility);
 
     // Set the turn order
-    this.gameState.turnOrder = playerMages.map((pm) => pm.playerId);
+    gameState.turnOrder = playerMages.map((pm) => pm.playerId);
 
     // Debug logs
-    console.log("Calculated turn order:", this.gameState.turnOrder);
+    console.log("Calculated turn order:", gameState.turnOrder);
   }
 
   /**
    * Get the current player's ID based on turn order
    */
   private getCurrentPlayerId(): string {
+    const gameState = this.getGameState();
     // Debug logs
-    console.log("Current turn:", this.gameState.currentTurn);
-    console.log("Turn order:", this.gameState.turnOrder);
+    console.log("Current turn:", gameState.currentTurn);
+    console.log("Turn order:", gameState.turnOrder);
 
     // Safety check: if turn order is empty, fallback to first player
-    if (
-      this.gameState.turnOrder.length === 0 &&
-      this.gameState.players.length > 0
-    ) {
+    if (gameState.turnOrder.length === 0 && gameState.players.length > 0) {
       console.log("Turn order is empty, using fallback");
       // Add all players to the turn order as a fallback
-      this.gameState.turnOrder = this.gameState.players.map((p) => p.id);
+      gameState.turnOrder = gameState.players.map((p) => p.id);
     }
 
-    const index = this.gameState.currentTurn % this.gameState.turnOrder.length;
-    const playerId = this.gameState.turnOrder[index];
+    const index = gameState.currentTurn % gameState.turnOrder.length;
+    const playerId = gameState.turnOrder[index];
     console.log(
-      `Selected player ${playerId} for turn ${this.gameState.currentTurn}`
+      `Selected player ${playerId} for turn ${gameState.currentTurn}`
     );
 
     return playerId;
@@ -188,6 +211,7 @@ export class TurnSystem {
    * Get the current state of the game
    */
   getState(): GameState {
-    return this.gameState;
+    const gameState = this.getGameState();
+    return gameState;
   }
 }
