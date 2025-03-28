@@ -54,7 +54,7 @@ const initialGameState: GameState = {
   mages: mages,
   spells: spells,
   grimoires: grimoires, // Add this to your GameState type
-  currentTurn: 0,
+  currentTurn: 1,
   turnOrder: [],
   winner: null,
 };

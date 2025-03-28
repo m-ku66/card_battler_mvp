@@ -20,6 +20,20 @@ export default function GamePage() {
   // Track the preparation step
   const [prepStep, setPrepStep] = useState<"mage" | "grimoire">("mage");
 
+  // Add this effect for automatic progression
+  useEffect(() => {
+    // Only run this effect in execution phase
+    if (gameState.phase === "battle" && gameState.battlePhase === "execution") {
+      // Set a timer to automatically progress to the next turn
+      const timer = setTimeout(() => {
+        console.log("Auto-advancing from execution phase");
+        endTurn();
+      }, 2000); // 2 second delay
+
+      return () => clearTimeout(timer);
+    }
+  }, [gameState.phase, gameState.battlePhase, endTurn]);
+
   // Get the first player for now (we'll handle multiple players later)
   const currentPlayer = gameState.players[0] || {
     id: "",
@@ -170,6 +184,18 @@ export default function GamePage() {
                   MP: {gameState.mages[currentPlayer.selectedMageId].magia}/
                   {gameState.mages[currentPlayer.selectedMageId].maxMagia}
                 </div>
+                <div>
+                  Attack:{" "}
+                  {gameState.mages[currentPlayer.selectedMageId].attackPower}
+                </div>
+                <div>
+                  Resistance:{" "}
+                  {gameState.mages[currentPlayer.selectedMageId].resistance}
+                </div>
+                <div>
+                  Agility:{" "}
+                  {gameState.mages[currentPlayer.selectedMageId].agility}
+                </div>
               </div>
             )}
 
@@ -196,11 +222,29 @@ export default function GamePage() {
                       .maxMagia
                   }
                 </div>
+                <div>
+                  Attack:{" "}
+                  {
+                    gameState.mages[gameState.players[1].selectedMageId]
+                      .attackPower
+                  }
+                </div>
+                <div>
+                  Resistance:{" "}
+                  {
+                    gameState.mages[gameState.players[1].selectedMageId]
+                      .resistance
+                  }
+                </div>
+                <div>
+                  Agility:{" "}
+                  {gameState.mages[gameState.players[1].selectedMageId].agility}
+                </div>
               </div>
             )}
           </div>
 
-          {/* In app/page.tsx - Replace the spell selection section */}
+          {/* Spell selection section */}
           {gameState.battlePhase === "spellSelection" && (
             <div className="mt-4">
               <h2 className="text-xl font-semibold mb-2">Select a Spell</h2>
@@ -313,12 +357,6 @@ export default function GamePage() {
                   <p>Watch as the spells take effect!</p>
                   {/* We could add animations or visual effects here */}
                 </div>
-                <button
-                  onClick={() => endTurn()}
-                  className="mt-4 px-4 py-2 bg-green-500 text-white rounded cursor-pointer"
-                >
-                  Continue
-                </button>
               </div>
             )}
 

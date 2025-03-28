@@ -102,33 +102,104 @@ export class TurnSystem {
   /**
    * End the current turn and execute spells when transitioning to execution phase
    */
+  // endTurn(): void {
+  //   const gameState = this.getGameState();
+  //   const currentPlayerId = this.getCurrentPlayerId();
+
+  //   eventBus.emit(GameEventType.TURN_ENDED, {
+  //     turn: gameState.currentTurn,
+  //     playerId: currentPlayerId,
+  //   });
+
+  //   // gameState.currentTurn++;
+  //   eventBus.emit(GameEventType.TURN_ENDED, {
+  //     turn: gameState.currentTurn,
+  //     playerId: currentPlayerId,
+  //   });
+
+  //   // Update turn count in the store (not just in local state)
+  //   useGameStore.setState((state) => ({
+  //     gameState: {
+  //       ...state.gameState,
+  //       currentTurn: state.gameState.currentTurn + 1,
+  //     },
+  //   }));
+
+  //   // If all players have taken a turn, switch battle phase
+  //   if (gameState.currentTurn % gameState.players.length === 0) {
+  //     if (gameState.battlePhase === "spellSelection") {
+  //       this.setBattlePhase("execution");
+
+  //       // Execute all spells when entering execution phase
+  //       this.executeSpells();
+  //     } else {
+  //       this.setBattlePhase("spellSelection");
+
+  //       // Regenerate magia for all mages at the end of a full turn
+  //       this.regenerateMagia();
+  //     }
+  //   }
+
+  //   this.startTurn();
+  // }
   endTurn(): void {
     const gameState = this.getGameState();
     const currentPlayerId = this.getCurrentPlayerId();
 
+    console.log(
+      `Ending turn ${gameState.currentTurn} for player ${currentPlayerId}`
+    );
+
+    // 1. Emit turn ended event
     eventBus.emit(GameEventType.TURN_ENDED, {
       turn: gameState.currentTurn,
       playerId: currentPlayerId,
     });
 
-    gameState.currentTurn++;
+    // 2. Handle phase transition
+    if (gameState.battlePhase === "spellSelection") {
+      // If we're in spell selection, move to execution
+      console.log("Transitioning to execution phase");
 
-    // If all players have taken a turn, switch battle phase
-    if (gameState.currentTurn % gameState.players.length === 0) {
-      if (gameState.battlePhase === "spellSelection") {
-        this.setBattlePhase("execution");
+      // Update state in ONE single operation
+      useGameStore.setState((state) => ({
+        gameState: {
+          ...state.gameState,
+          battlePhase: "execution",
+        },
+      }));
 
-        // Execute all spells when entering execution phase
-        this.executeSpells();
-      } else {
-        this.setBattlePhase("spellSelection");
+      eventBus.emit(GameEventType.BATTLE_PHASE_CHANGED, {
+        previousPhase: "spellSelection",
+        currentPhase: "execution",
+      });
 
-        // Regenerate magia for all mages at the end of a full turn
-        this.regenerateMagia();
-      }
+      // Execute spells immediately
+      this.combatSystem.executeSpells();
+    } else {
+      // If we're in execution, move to the next turn and back to spell selection
+      console.log("Transitioning to next turn and spell selection");
+
+      // Update state in ONE single operation
+      useGameStore.setState((state) => ({
+        gameState: {
+          ...state.gameState,
+          battlePhase: "spellSelection",
+          currentTurn: state.gameState.currentTurn + 1,
+        },
+      }));
+
+      eventBus.emit(GameEventType.BATTLE_PHASE_CHANGED, {
+        previousPhase: "execution",
+        currentPhase: "spellSelection",
+      });
+
+      // Regenerate magia
+      this.regenerateMagia();
+
+      // Start the next turn
+      this.startTurn();
     }
-
-    this.startTurn();
   }
 
   /**
