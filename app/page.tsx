@@ -380,18 +380,6 @@ export default function GamePage() {
               </button>
             </div>
           )}
-
-          {/* Execution phase UI - show something different when spells are being executed */}
-          {gameState.battlePhase === "execution" && (
-            <div>
-              <button
-                onClick={() => endTurn()}
-                className="px-4 py-2 bg-green-500 text-white rounded cursor-pointer"
-              >
-                Continue
-              </button>
-            </div>
-          )}
         </div>
       )}
 
