@@ -200,10 +200,10 @@ export default function GamePage() {
             )}
           </div>
 
-          {/* Spell Selection UI - only show during spellSelection phase */}
+          {/* In app/page.tsx - Replace the spell selection section */}
           {gameState.battlePhase === "spellSelection" && (
             <div className="mt-4">
-              <h2 className="text-xl font-semibold mb-2">Select Spells</h2>
+              <h2 className="text-xl font-semibold mb-2">Select a Spell</h2>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
                 {currentPlayer.selectedGrimoireIds.map((grimoireId) => {
                   const grimoire = gameState.grimoires[grimoireId];
@@ -216,16 +216,19 @@ export default function GamePage() {
                     return (
                       <div
                         key={spell.id}
-                        className="border p-3 rounded cursor-pointer hover:bg-blue-400/[0.1]"
-                        onClick={() =>
-                          selectSpell(currentPlayer.id, spell.id, 0)
-                        }
+                        className={`border p-3 rounded cursor-pointer 
+                ${
+                  currentPlayer.selectedSpellId === spell.id
+                    ? "bg-blue-100 border-blue-500"
+                    : "hover:bg-blue-50"
+                }`}
+                        onClick={() => selectSpell(currentPlayer.id, spell.id)}
                       >
                         <h3 className="font-semibold">{spell.name}</h3>
                         <p className="text-sm">{spell.description}</p>
                         <div className="text-sm mt-1">
                           <span className="mr-2">Cost: {spell.magiaCost}</span>
-                          <span>Base Power: {spell.basePower}</span>
+                          <span>Power: {spell.basePower}</span>
                         </div>
                       </div>
                     );
@@ -236,11 +239,17 @@ export default function GamePage() {
                 {currentPlayer.selectedMageId &&
                   gameState.mages[currentPlayer.selectedMageId] && (
                     <div
-                      className="border p-3 rounded cursor-pointer hover:bg-blue-400/[0.1] border-purple-400"
+                      className={`border p-3 rounded cursor-pointer border-purple-300
+            ${
+              currentPlayer.selectedSpellId ===
+              gameState.mages[currentPlayer.selectedMageId]?.innateSpellId
+                ? "bg-purple-100 border-purple-500"
+                : "hover:bg-purple-50"
+            }`}
                       onClick={() => {
                         const mage =
                           gameState.mages[currentPlayer.selectedMageId!];
-                        selectSpell(currentPlayer.id, mage.innateSpellId, 0);
+                        selectSpell(currentPlayer.id, mage.innateSpellId);
                       }}
                     >
                       <h3 className="font-semibold">
@@ -261,45 +270,34 @@ export default function GamePage() {
               </div>
 
               <div className="bg-gray-50 p-3 rounded mb-4">
-                <h3 className="font-semibold mb-2">
-                  Selected Spells for This Turn:
-                </h3>
-                <div className="grid grid-cols-3 gap-2">
-                  {[0, 1, 2].map((slot) => {
-                    const spellId = currentPlayer.selectedSpellIds[slot];
-                    const spell = spellId ? gameState.spells[spellId] : null;
-
-                    return (
-                      <div
-                        key={slot}
-                        className="border rounded p-2 min-h-20 bg-white"
-                      >
-                        {spell ? (
-                          <>
-                            <div className="font-medium">{spell.name}</div>
-                            <div className="text-xs text-gray-500">
-                              {spell.description}
-                            </div>
-                          </>
-                        ) : (
-                          <div className="text-gray-400 text-center h-full flex items-center justify-center">
-                            Select a spell
-                          </div>
-                        )}
+                <h3 className="font-semibold mb-2">Selected Spell:</h3>
+                <div className="border rounded p-2 min-h-20 bg-white">
+                  {currentPlayer.selectedSpellId ? (
+                    <>
+                      <div className="font-medium">
+                        {gameState.spells[currentPlayer.selectedSpellId]?.name}
                       </div>
-                    );
-                  })}
+                      <div className="text-xs text-gray-500">
+                        {
+                          gameState.spells[currentPlayer.selectedSpellId]
+                            ?.description
+                        }
+                      </div>
+                    </>
+                  ) : (
+                    <div className="text-gray-400 text-center h-full flex items-center justify-center">
+                      Select a spell
+                    </div>
+                  )}
                 </div>
               </div>
 
               <button
                 onClick={() => endTurn()}
                 className="px-4 py-2 bg-green-500 text-white rounded cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
-                disabled={
-                  currentPlayer.selectedSpellIds.filter(Boolean).length === 0
-                }
+                disabled={!currentPlayer.selectedSpellId}
               >
-                Confirm Spells
+                Confirm Spell
               </button>
             </div>
           )}

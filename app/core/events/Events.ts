@@ -59,7 +59,6 @@ export interface GameEventData {
   [GameEventType.SPELL_SELECTED]: {
     playerId: string;
     spellId: string;
-    slotIndex: number;
   };
   [GameEventType.SPELL_CAST]: {
     casterId: string;

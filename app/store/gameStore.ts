@@ -19,7 +19,7 @@ interface GameStore {
   initializeGame: () => void;
   selectMage: (playerId: string, mageId: string) => void;
   selectGrimoire: (playerId: string, grimoireIds: string[]) => void;
-  selectSpell: (playerId: string, spellId: string, slotIndex: number) => void;
+  selectSpell: (playerId: string, spellId: string) => void;
   startBattle: () => void;
   endTurn: () => void;
 
@@ -39,7 +39,7 @@ const initialGameState: GameState = {
       selectedMageId: null,
       studentRoster: ["mage1", "mage2"], // IDs of mages in roster
       selectedGrimoireIds: [],
-      selectedSpellIds: [],
+      selectedSpellId: null,
     },
     // AI player
     {
@@ -48,7 +48,7 @@ const initialGameState: GameState = {
       selectedMageId: null,
       studentRoster: ["mage3", "mage4"],
       selectedGrimoireIds: [],
-      selectedSpellIds: [],
+      selectedSpellId: null,
     },
   ],
   mages: mages,
@@ -186,34 +186,18 @@ export const useGameStore = create<GameStore>((set, get) => ({
     });
   },
 
-  selectSpell: (playerId: string, spellId: string, slotIndex: number) => {
+  selectSpell: (playerId: string, spellId: string) => {
     eventBus.emit(GameEventType.SPELL_SELECTED, {
       playerId,
       spellId,
-      slotIndex,
     });
 
     set((state) => {
       const updatedPlayers = state.gameState.players.map((player) => {
         if (player.id === playerId) {
-          // Create a copy of the selected spells array
-          const selectedSpellIds = [...(player.selectedSpellIds || [])];
-
-          // Make sure the array is long enough to accommodate the slot index
-          while (selectedSpellIds.length <= slotIndex) {
-            selectedSpellIds.push("");
-          }
-
-          // Set the spell ID at the specified slot
-          selectedSpellIds[slotIndex] = spellId;
-
-          // Log to verify the spell is being saved
-          console.log(
-            `Player ${playerId} selected spell ${spellId} in slot ${slotIndex}`
-          );
-          console.log("Updated spell selection:", selectedSpellIds);
-
-          return { ...player, selectedSpellIds };
+          // Simply set the selectedSpellId
+          console.log(`Player ${playerId} selected spell ${spellId}`);
+          return { ...player, selectedSpellId: spellId };
         }
         return player;
       });
@@ -267,7 +251,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
       }
     }
 
-    // If in battle phase and spell selection, select spells
+    // If in battle phase and spell selection, select a single spell
     if (
       gameState.phase === "battle" &&
       gameState.battlePhase === "spellSelection"
@@ -293,17 +277,15 @@ export const useGameStore = create<GameStore>((set, get) => ({
           availableSpells.push(mage.innateSpellId);
         }
 
-        // Select a random spell for each slot (3 slots)
-        for (let i = 0; i < 3; i++) {
-          if (availableSpells.length > 0) {
-            const randomSpellIndex = Math.floor(
-              Math.random() * availableSpells.length
-            );
-            const randomSpellId = availableSpells[randomSpellIndex];
+        // Select a random spell (just one now)
+        if (availableSpells.length > 0) {
+          const randomSpellIndex = Math.floor(
+            Math.random() * availableSpells.length
+          );
+          const randomSpellId = availableSpells[randomSpellIndex];
 
-            console.log(`AI selecting spell for slot ${i}: ${randomSpellId}`);
-            selectSpell("player2", randomSpellId, i);
-          }
+          console.log(`AI selecting spell: ${randomSpellId}`);
+          selectSpell("player2", randomSpellId);
         }
       }
     }

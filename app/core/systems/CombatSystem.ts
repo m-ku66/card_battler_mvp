@@ -23,7 +23,7 @@ export class CombatSystem {
       gameState.players.map((player) => ({
         id: player.id,
         selectedMageId: player.selectedMageId,
-        selectedSpellIds: player.selectedSpellIds,
+        selectedSpellId: player.selectedSpellId,
       }))
     );
 
@@ -36,27 +36,24 @@ export class CombatSystem {
       agility: number;
     }> = [];
 
-    // Collect all selected spells for this turn
+    // Collect the single selected spell for each player
     gameState.players.forEach((player) => {
       const mageId = player.selectedMageId;
-      if (!mageId) return;
+      if (!mageId || !player.selectedSpellId) return;
 
       const mage = gameState.mages[mageId];
       if (!mage) return;
 
-      player.selectedSpellIds.forEach((spellId) => {
-        if (!spellId) return;
+      const spellId = player.selectedSpellId;
+      const spell = gameState.spells[spellId];
+      if (!spell) return;
 
-        const spell = gameState.spells[spellId];
-        if (!spell) return;
-
-        spellActions.push({
-          casterId: player.id,
-          casterMageId: mageId,
-          spellId: spell.id,
-          castingTime: spell.castingTime,
-          agility: mage.agility,
-        });
+      spellActions.push({
+        casterId: player.id,
+        casterMageId: mageId,
+        spellId: spell.id,
+        castingTime: spell.castingTime,
+        agility: mage.agility,
       });
     });
 
