@@ -36,7 +36,14 @@ export default function SpellSelectionPanel({
                       ? "bg-blue-100 border-blue-500"
                       : "hover:bg-blue-50"
                   }`}
-                onClick={() => onSelectSpell(spell.id)}
+                onClick={() => {
+                  // If already selected, deselect it
+                  if (player.selectedSpellId === spell.id) {
+                    onSelectSpell(""); // Empty string to clear selection
+                  } else {
+                    onSelectSpell(spell.id);
+                  }
+                }}
               >
                 <h3 className="font-semibold">{spell.name}</h3>
                 <p className="text-sm">{spell.description}</p>
@@ -61,7 +68,14 @@ export default function SpellSelectionPanel({
               }`}
             onClick={() => {
               const mage = gameState.mages[player.selectedMageId!];
-              onSelectSpell(mage.innateSpellId);
+              const spellId = mage.innateSpellId;
+
+              // If already selected, deselect it
+              if (player.selectedSpellId === spellId) {
+                onSelectSpell("");
+              } else {
+                onSelectSpell(spellId);
+              }
             }}
           >
             <h3 className="font-semibold">

@@ -108,6 +108,9 @@ export class CombatSystem {
       console.log(
         `${casterMage.name} doesn't have enough magia to cast ${spell.name}`
       );
+      alert(
+        `${casterMage.name} doesn't have enough magia to cast ${spell.name}`
+      );
       return;
     }
 
@@ -186,6 +189,15 @@ export class CombatSystem {
         break;
 
       case "status":
+        // For status effects, we should ensure damage is still applied
+        // if no explicit damage effect exists and it's an attack spell
+        if (
+          spell.type === "attack" &&
+          !spell.effects.some((e) => e.type === "damage")
+        ) {
+          this.applyDamage(caster, target, spell);
+        }
+
         eventBus.emit(GameEventType.STATUS_APPLIED, {
           targetId: target.id,
           statusType: effect.name || "unknown",
