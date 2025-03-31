@@ -1,7 +1,7 @@
 import { Spell } from "../core/models/Spell";
 // Define all spells in the game
 export const spells: Record<string, Spell> = {
-  rhaz: {
+  rhaz_001: {
     id: "rhaz_001",
     name: "Rhaz",
     description:
@@ -15,7 +15,7 @@ export const spells: Record<string, Spell> = {
     usesPerBattle: 10,
     target: "opponent",
   },
-  rhazia: {
+  rhazia_001: {
     id: "rhazia_001",
     name: "Rhazia",
     description:
@@ -38,7 +38,7 @@ export const spells: Record<string, Spell> = {
     usesPerBattle: 5,
     target: "opponent",
   },
-  rhazlef: {
+  rhazlef_001: {
     id: "rhazlef_001",
     name: "Rhazlef",
     description:
@@ -61,7 +61,7 @@ export const spells: Record<string, Spell> = {
     usesPerBattle: 1,
     target: "enemies",
   },
-  akua: {
+  akua_001: {
     id: "akua_001",
     name: "Akua",
     description:
@@ -75,7 +75,7 @@ export const spells: Record<string, Spell> = {
     usesPerBattle: 10,
     target: "opponent",
   },
-  bhurka: {
+  bhurka_001: {
     id: "bhurka_001",
     name: "Bhurka",
     description:
@@ -89,7 +89,7 @@ export const spells: Record<string, Spell> = {
     usesPerBattle: 5,
     target: "opponent",
   },
-  nuct: {
+  nuct_001: {
     id: "nuct_001",
     name: "Nuct",
     description:
@@ -112,7 +112,7 @@ export const spells: Record<string, Spell> = {
     usesPerBattle: 1,
     target: "enemies",
   },
-  teryolk: {
+  teryolk_001: {
     id: "teryolk_001",
     name: "Teryolk",
     description:
@@ -126,7 +126,7 @@ export const spells: Record<string, Spell> = {
     usesPerBattle: 10,
     target: "opponent",
   },
-  earthquake: {
+  earthquake_001: {
     id: "earthquake_001",
     name: "Earthquake",
     description:
@@ -140,7 +140,7 @@ export const spells: Record<string, Spell> = {
     usesPerBattle: 5,
     target: "enemies",
   },
-  zephyr: {
+  zephyr_001: {
     id: "zephyr_001",
     name: "Zephyr",
     description: "A slash that deals damage to the target",
