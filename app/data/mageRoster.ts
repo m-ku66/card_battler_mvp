@@ -2,7 +2,7 @@ import { Mage } from "../core/models/Mage";
 
 // Define all mages in the game
 export const mages: Record<string, Mage> = {
-  idlad: {
+  "idlad_001": {
     id: "idlad_001",
     name: "Idlad",
     health: 120,
@@ -19,7 +19,7 @@ export const mages: Record<string, Mage> = {
     innateSpellId: "rhaz_001",
     grimoireIds: ["fire_001"],
   },
-  inaui: {
+  "inaui_001": {
     id: "inaui_001",
     name: "Inaui",
     health: 95,
@@ -36,7 +36,7 @@ export const mages: Record<string, Mage> = {
     innateSpellId: "akua_001",
     grimoireIds: ["water_001"],
   },
-  narnrokhar: {
+  "narnrokhar_001": {
     id: "narnrokhar_001",
     name: "Narnrokhar",
     health: 130,
@@ -53,7 +53,7 @@ export const mages: Record<string, Mage> = {
     innateSpellId: "teryolk_001",
     grimoireIds: ["earth_001"],
   },
-  surha: {
+  "surha_001": {
     id: "surha_001",
     name: "Surha",
     health: 90,
