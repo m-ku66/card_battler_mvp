@@ -37,7 +37,7 @@ const initialGameState: GameState = {
       id: "player1",
       name: "Player 1",
       selectedMageId: null,
-      studentRoster: ["idlad_001", "inaui_001", "narnrokhar_001", "surha_001"], // IDs of mages in roster
+      studentRoster: ["idlad", "inaui", "narnrokhar", "surha"], // IDs of mages in roster
       selectedGrimoireIds: [],
       selectedSpellId: null,
     },
@@ -46,7 +46,7 @@ const initialGameState: GameState = {
       id: "player2",
       name: "AI Player",
       selectedMageId: null,
-      studentRoster: ["narnrokhar_001", "inaui_001"],
+      studentRoster: ["narnrokhar", "inaui"],
       selectedGrimoireIds: [],
       selectedSpellId: null,
     },
