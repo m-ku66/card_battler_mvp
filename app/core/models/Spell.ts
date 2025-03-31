@@ -12,6 +12,15 @@ export interface Spell {
   affinity: ElementalAffinity;
   effects: SpellEffect[];
   usesPerBattle?: number; // Optional limit on uses
+  target:
+    | "self"
+    | "opponent"
+    | "all"
+    | "allies"
+    | "enemies"
+    | "random"
+    | "allyRandom"
+    | "enemyRandom"; // The target of the spell
 }
 
 /**
@@ -32,7 +41,15 @@ export interface Spell {
 
 export interface SpellEffect {
   type: "damage" | "heal" | "buff" | "debuff" | "status";
-  target: "self" | "opponent" | "all" | "allies" | "enemies" | "random";
+  target:
+    | "self"
+    | "opponent"
+    | "all"
+    | "allies"
+    | "enemies"
+    | "random"
+    | "allyRandom"
+    | "enemyRandom"; // The target of the effect
   name?: string; // Optional name for the effect
   description?: string; // Optional description for the effect
   value: number; // The value of the effect, can be a percentage(0.5 = 50%) or a fixed value(50 = 50)

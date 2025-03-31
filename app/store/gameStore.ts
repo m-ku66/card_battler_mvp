@@ -37,7 +37,7 @@ const initialGameState: GameState = {
       id: "player1",
       name: "Player 1",
       selectedMageId: null,
-      studentRoster: ["mage1", "mage2"], // IDs of mages in roster
+      studentRoster: ["idlad_001", "inaui_001", "narnrokhar_001", "surha_001"], // IDs of mages in roster
       selectedGrimoireIds: [],
       selectedSpellId: null,
     },
@@ -46,14 +46,14 @@ const initialGameState: GameState = {
       id: "player2",
       name: "AI Player",
       selectedMageId: null,
-      studentRoster: ["mage3", "mage4"],
+      studentRoster: ["narnrokhar_001", "inaui_001"],
       selectedGrimoireIds: [],
       selectedSpellId: null,
     },
   ],
   mages: mages,
   spells: spells,
-  grimoires: grimoires, // Add this to your GameState type
+  grimoires: grimoires,
   currentTurn: 1,
   turnOrder: [],
   winner: null,
