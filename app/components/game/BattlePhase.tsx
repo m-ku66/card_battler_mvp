@@ -7,7 +7,11 @@ import ExecutionPanel from "./battle/ExecutionPanel";
 interface BattlePhaseProps {
   gameState: GameState;
   playerId: string;
-  onSelectSpell: (playerId: string, spellId: string) => void;
+  onSelectSpell: (
+    playerId: string,
+    spellId: string,
+    isInnate?: boolean
+  ) => void;
   onEndTurn: () => void;
 }
 
@@ -30,7 +34,9 @@ export default function BattlePhase({
         <SpellSelectionPanel
           gameState={gameState}
           player={player}
-          onSelectSpell={(spellId) => onSelectSpell(player.id, spellId)}
+          onSelectSpell={(spellId, isInnate = false) =>
+            onSelectSpell(player.id, spellId, isInnate)
+          }
           onConfirmSpell={onEndTurn}
         />
       ) : (

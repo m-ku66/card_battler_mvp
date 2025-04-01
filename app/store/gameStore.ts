@@ -19,7 +19,7 @@ interface GameStore {
   initializeGame: () => void;
   selectMage: (playerId: string, mageId: string) => void;
   selectGrimoire: (playerId: string, grimoireIds: string[]) => void;
-  selectSpell: (playerId: string, spellId: string) => void;
+  selectSpell: (playerId: string, spellId: string, isInnate?: boolean) => void;
   startBattle: () => void;
   endTurn: () => void;
 
@@ -40,15 +40,17 @@ const initialGameState: GameState = {
       studentRoster: ["idlad_001", "inaui_001", "narnrokhar_001", "surha_001"], // IDs of mages in roster
       selectedGrimoireIds: [],
       selectedSpellId: null,
+      isSelectedSpellInnate: false,
     },
     // AI player
     {
       id: "player2",
       name: "AI Player",
       selectedMageId: null,
-      studentRoster: ["narnrokhar_001", "inaui_001"],
+      studentRoster: ["narnrokhar_001", "inaui_001", "zkilliam_001"],
       selectedGrimoireIds: [],
       selectedSpellId: null,
+      isSelectedSpellInnate: false,
     },
   ],
   mages: mages,
@@ -186,7 +188,11 @@ export const useGameStore = create<GameStore>((set, get) => ({
     });
   },
 
-  selectSpell: (playerId: string, spellId: string) => {
+  selectSpell: (
+    playerId: string,
+    spellId: string,
+    isInnate: boolean = false
+  ) => {
     eventBus.emit(GameEventType.SPELL_SELECTED, {
       playerId,
       spellId,
@@ -195,9 +201,15 @@ export const useGameStore = create<GameStore>((set, get) => ({
     set((state) => {
       const updatedPlayers = state.gameState.players.map((player) => {
         if (player.id === playerId) {
-          // Simply set the selectedSpellId
-          console.log(`Player ${playerId} selected spell ${spellId}`);
-          return { ...player, selectedSpellId: spellId };
+          // Simply set the selectedSpellId and isSelectedSpellInnate
+          console.log(
+            `Player ${playerId} selected spell ${spellId}, innate: ${isInnate}`
+          );
+          return {
+            ...player,
+            selectedSpellId: spellId,
+            isSelectedSpellInnate: isInnate,
+          };
         }
         return player;
       });
@@ -277,15 +289,20 @@ export const useGameStore = create<GameStore>((set, get) => ({
           availableSpells.push(mage.innateSpellId);
         }
 
-        // Select a random spell (just one now)
+        // Select a random spell from available spells
         if (availableSpells.length > 0) {
           const randomSpellIndex = Math.floor(
             Math.random() * availableSpells.length
           );
           const randomSpellId = availableSpells[randomSpellIndex];
 
-          console.log(`AI selecting spell: ${randomSpellId}`);
-          selectSpell("player2", randomSpellId);
+          // Check if the selected spell is innate
+          const isInnate = mage && mage.innateSpellId === randomSpellId;
+
+          console.log(
+            `AI selecting spell: ${randomSpellId}, innate: ${isInnate}`
+          );
+          selectSpell("player2", randomSpellId, isInnate);
         }
       }
     }

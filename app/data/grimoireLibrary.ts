@@ -30,4 +30,11 @@ export const grimoires: Record<string, Grimoire> = {
     spellIds: ["zephyr_001"],
     affinity: "wind",
   },
+  lightning_001: {
+    id: "lightning_001",
+    name: "Electromancer's Tome",
+    description: "A grimoire filled with lightning spells",
+    spellIds: ["bolt_001", "flash_001"],
+    affinity: "lightning",
+  },
 };

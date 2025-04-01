@@ -5,7 +5,7 @@ import { Player } from "@/app/core/models/Player";
 interface SpellSelectionPanelProps {
   gameState: GameState;
   player: Player;
-  onSelectSpell: (spellId: string) => void;
+  onSelectSpell: (spellId: string, isInnate?: boolean) => void;
   onConfirmSpell: () => void;
 }
 
@@ -32,16 +32,20 @@ export default function SpellSelectionPanel({
                 key={spell.id}
                 className={`border p-3 rounded cursor-pointer 
                   ${
-                    player.selectedSpellId === spell.id
+                    player.selectedSpellId === spell.id &&
+                    !player.isSelectedSpellInnate
                       ? "bg-blue-100 border-blue-500"
                       : "hover:bg-blue-50"
                   }`}
                 onClick={() => {
                   // If already selected, deselect it
-                  if (player.selectedSpellId === spell.id) {
-                    onSelectSpell(""); // Empty string to clear selection
+                  if (
+                    player.selectedSpellId === spell.id &&
+                    !player.isSelectedSpellInnate
+                  ) {
+                    onSelectSpell("", false); // Empty string to clear selection
                   } else {
-                    onSelectSpell(spell.id);
+                    onSelectSpell(spell.id, false);
                   }
                 }}
               >
@@ -62,7 +66,8 @@ export default function SpellSelectionPanel({
             className={`border p-3 rounded cursor-pointer border-purple-300
               ${
                 player.selectedSpellId ===
-                gameState.mages[player.selectedMageId]?.innateSpellId
+                  gameState.mages[player.selectedMageId]?.innateSpellId &&
+                player.isSelectedSpellInnate
                   ? "bg-purple-100 border-purple-500"
                   : "hover:bg-purple-50"
               }`}
@@ -71,10 +76,13 @@ export default function SpellSelectionPanel({
               const spellId = mage.innateSpellId;
 
               // If already selected, deselect it
-              if (player.selectedSpellId === spellId) {
-                onSelectSpell("");
+              if (
+                player.selectedSpellId === spellId &&
+                player.isSelectedSpellInnate
+              ) {
+                onSelectSpell("", false);
               } else {
-                onSelectSpell(spellId);
+                onSelectSpell(spellId, true); // Explicitly say it's innate
               }
             }}
           >

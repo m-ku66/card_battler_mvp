@@ -5,6 +5,7 @@ export interface Player {
   studentRoster: string[]; // Roster of mages available to this player
   selectedGrimoireIds: string[];
   selectedSpellId: string | null; // Currently selected spell for this turn
+  isSelectedSpellInnate: boolean; // New field to track source
 }
 
 /**

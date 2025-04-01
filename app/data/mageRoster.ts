@@ -2,7 +2,7 @@ import { Mage } from "../core/models/Mage";
 
 // Define all mages in the game
 export const mages: Record<string, Mage> = {
-  "idlad_001": {
+  idlad_001: {
     id: "idlad_001",
     name: "Idlad",
     health: 120,
@@ -19,7 +19,7 @@ export const mages: Record<string, Mage> = {
     innateSpellId: "rhaz_001",
     grimoireIds: ["fire_001"],
   },
-  "inaui_001": {
+  inaui_001: {
     id: "inaui_001",
     name: "Inaui",
     health: 95,
@@ -36,7 +36,7 @@ export const mages: Record<string, Mage> = {
     innateSpellId: "akua_001",
     grimoireIds: ["water_001"],
   },
-  "narnrokhar_001": {
+  narnrokhar_001: {
     id: "narnrokhar_001",
     name: "Narnrokhar",
     health: 130,
@@ -53,7 +53,7 @@ export const mages: Record<string, Mage> = {
     innateSpellId: "teryolk_001",
     grimoireIds: ["earth_001"],
   },
-  "surha_001": {
+  surha_001: {
     id: "surha_001",
     name: "Surha",
     health: 90,
@@ -69,5 +69,22 @@ export const mages: Record<string, Mage> = {
     personality: "cunning",
     innateSpellId: "zephyr_001",
     grimoireIds: ["wind_001"],
+  },
+  zkilliam_001: {
+    id: "zkilliam_001",
+    name: "Zkilliam",
+    health: 100,
+    maxHealth: 100,
+    magia: 100,
+    maxMagia: 100,
+    magiaRegenRate: 20,
+    agility: 30,
+    resistance: 12,
+    wisdom: 45,
+    attackPower: 25,
+    affinity: "lightning",
+    personality: "aggressive",
+    innateSpellId: "bolt_001",
+    grimoireIds: ["lightning_001"],
   },
 };
