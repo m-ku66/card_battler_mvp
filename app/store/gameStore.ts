@@ -255,15 +255,6 @@ export const useGameStore = create<GameStore>((set, get) => ({
             spell.usesPerBattle || Infinity;
         });
       });
-
-      // Add innate spell with unlimited uses
-      if (player.selectedMageId) {
-        const mage = gameState.mages[player.selectedMageId];
-        if (mage && mage.innateSpellId) {
-          // Innate spells can be used an unlimited number of times
-          spellUsesRemaining[player.id][mage.innateSpellId] = Infinity;
-        }
-      }
     });
 
     // Update the state with initialized spell uses

@@ -115,6 +115,17 @@ export class CombatSystem {
     const isInnateSpell =
       spellId === casterMage.innateSpellId && caster.isSelectedSpellInnate;
 
+    // Check if spell has uses remaining (only if NOT using as innate spell)
+    if (!isInnateSpell) {
+      const usesRemaining =
+        gameState.spellUsesRemaining[casterId]?.[spellId] || 0;
+      if (usesRemaining <= 0) {
+        console.log(`${casterMage.name} has no uses left for ${spell.name}`);
+        alert(`${casterMage.name} has no uses left for ${spell.name}`);
+        return;
+      }
+    }
+
     // Calculate the actual magia cost (50% reduction for innate spells)
     const baseMagiaCost = spell.magiaCost;
     const actualMagiaCost = isInnateSpell
@@ -126,20 +137,16 @@ export class CombatSystem {
       console.log(
         `${casterMage.name} doesn't have enough magia to cast ${spell.name}`
       );
-      alert(
-        `${casterMage.name} doesn't have enough magia to cast ${spell.name}`
-      );
+      // alert(
+      //   `${casterMage.name} doesn't have enough magia to cast ${spell.name}`
+      // );
       return;
     }
 
-    // After successfully casting the spell
-    // Decrement the spell uses (don't decrement if it's Infinity)
-    if (usesRemaining !== Infinity) {
-      // We're updating the state directly here, which would normally
-      // be done through the store, but let's keep it simple for now
+    // Only decrement uses if NOT casting as innate spell
+    if (!isInnateSpell) {
       gameState.spellUsesRemaining[casterId][spellId]--;
 
-      // If it was the last use, emit an event (we could add a new event type for this)
       if (gameState.spellUsesRemaining[casterId][spellId] === 0) {
         console.log(`${casterMage.name} has used up all uses of ${spell.name}`);
       }

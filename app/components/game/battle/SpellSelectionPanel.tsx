@@ -124,7 +124,7 @@ export default function SpellSelectionPanel({
             const hasEnoughMagia = currentMagia >= reducedCost;
 
             // Innate spells have unlimited uses
-            const usesRemaining = Infinity;
+            // const usesRemaining = Infinity;
 
             return (
               <div
