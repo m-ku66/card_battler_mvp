@@ -84,9 +84,9 @@ export default function GamePage() {
       )}
 
       {/* Debug state display */}
-      <pre className="mt-8 p-4 bg-gray-100/[0.2] rounded overflow-auto text-xs">
+      {/* <pre className="mt-8 p-4 bg-gray-100/[0.2] rounded overflow-auto text-xs">
         {JSON.stringify(gameState, null, 2)}
-      </pre>
+      </pre> */}
     </div>
   );
 }

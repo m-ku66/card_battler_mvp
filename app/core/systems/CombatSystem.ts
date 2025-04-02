@@ -102,9 +102,18 @@ export class CombatSystem {
     const targetMage = gameState.mages[targetMageId];
     if (!targetMage) return;
 
+    // Check if this is the mage's innate spell
+    const isInnateSpell =
+      spellId === casterMage.innateSpellId && caster.isSelectedSpellInnate;
+
+    // Calculate the actual magia cost (50% reduction for innate spells)
+    const baseMagiaCost = spell.magiaCost;
+    const actualMagiaCost = isInnateSpell
+      ? Math.floor(baseMagiaCost * 0.5)
+      : baseMagiaCost;
+
     // Check if the caster has enough magia
-    const magiaCost = spell.magiaCost;
-    if (casterMage.magia < magiaCost) {
+    if (casterMage.magia < actualMagiaCost) {
       console.log(
         `${casterMage.name} doesn't have enough magia to cast ${spell.name}`
       );
@@ -114,11 +123,11 @@ export class CombatSystem {
       return;
     }
 
-    // Consume magia
-    casterMage.magia -= magiaCost;
+    // Consume magia (using the calculated cost)
+    casterMage.magia -= actualMagiaCost;
     eventBus.emit(GameEventType.MAGIA_CONSUMED, {
       mageId: casterMageId,
-      amount: magiaCost,
+      amount: actualMagiaCost,
       newMagia: casterMage.magia,
     });
 
