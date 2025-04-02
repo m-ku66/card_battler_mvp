@@ -59,6 +59,7 @@ const initialGameState: GameState = {
   currentTurn: 1,
   turnOrder: [],
   winner: null,
+  spellUsesRemaining: {}, // Will be populated when the game starts
 };
 
 // Create the store
@@ -223,8 +224,57 @@ export const useGameStore = create<GameStore>((set, get) => ({
     });
   },
 
+  // startBattle: () => {
+  //   const { turnSystem } = get();
+  //   if (turnSystem) {
+  //     turnSystem.setPhase("battle");
+  //   }
+  // },
   startBattle: () => {
-    const { turnSystem } = get();
+    const { turnSystem, gameState } = get();
+
+    // Initialize spell uses for all players
+    const spellUsesRemaining: Record<string, Record<string, number>> = {};
+
+    // For each player
+    gameState.players.forEach((player) => {
+      spellUsesRemaining[player.id] = {};
+
+      // For each grimoire
+      player.selectedGrimoireIds.forEach((grimoireId) => {
+        const grimoire = gameState.grimoires[grimoireId];
+        if (!grimoire) return;
+
+        // For each spell in grimoire
+        grimoire.spellIds.forEach((spellId) => {
+          const spell = gameState.spells[spellId];
+          if (!spell) return;
+
+          // Set initial uses
+          spellUsesRemaining[player.id][spellId] =
+            spell.usesPerBattle || Infinity;
+        });
+      });
+
+      // Add innate spell with unlimited uses
+      if (player.selectedMageId) {
+        const mage = gameState.mages[player.selectedMageId];
+        if (mage && mage.innateSpellId) {
+          // Innate spells can be used an unlimited number of times
+          spellUsesRemaining[player.id][mage.innateSpellId] = Infinity;
+        }
+      }
+    });
+
+    // Update the state with initialized spell uses
+    set((state) => ({
+      gameState: {
+        ...state.gameState,
+        spellUsesRemaining,
+      },
+    }));
+
+    // Start the battle
     if (turnSystem) {
       turnSystem.setPhase("battle");
     }

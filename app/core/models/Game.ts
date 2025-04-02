@@ -17,4 +17,5 @@ export interface GameState {
   currentTurn: number;
   turnOrder: string[]; // Player IDs in order of their turn
   winner: string | null;
+  spellUsesRemaining: Record<string, Record<string, number>>; // playerId -> spellId -> uses remaining
 }
