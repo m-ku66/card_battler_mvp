@@ -38,8 +38,14 @@ export class CombatSystem {
 
     // Collect the single selected spell for each player
     gameState.players.forEach((player) => {
+      // Skip players who didn't select a spell (passed their turn)
+      if (!player.selectedSpellId) {
+        console.log(`${player.name} passed their turn`);
+        return;
+      }
+
       const mageId = player.selectedMageId;
-      if (!mageId || !player.selectedSpellId) return;
+      if (!mageId) return;
 
       const mage = gameState.mages[mageId];
       if (!mage) return;
@@ -56,6 +62,12 @@ export class CombatSystem {
         agility: mage.agility,
       });
     });
+
+    // If no spells to execute, just return
+    if (spellActions.length === 0) {
+      console.log("No spells to execute this turn");
+      return;
+    }
 
     // Sort spells by casting time (lower = faster) and then by agility (higher = faster)
     spellActions.sort((a, b) => {

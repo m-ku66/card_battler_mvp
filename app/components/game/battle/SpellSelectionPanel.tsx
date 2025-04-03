@@ -190,19 +190,33 @@ export default function SpellSelectionPanel({
             </>
           ) : (
             <div className="text-gray-400 text-center h-full flex items-center justify-center">
-              Select a spell
+              Select a spell or pass your turn
             </div>
           )}
         </div>
       </div>
 
-      <button
-        onClick={onConfirmSpell}
-        className="px-4 py-2 bg-green-500 text-white rounded cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
-        disabled={!player.selectedSpellId}
-      >
-        Confirm Spell
-      </button>
+      <div className="flex gap-4">
+        <button
+          onClick={onConfirmSpell}
+          className="px-4 py-2 bg-green-500 text-white rounded cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+          disabled={!player.selectedSpellId}
+        >
+          Confirm Spell
+        </button>
+
+        <button
+          onClick={() => {
+            // Clear the spell selection first
+            onSelectSpell("", false);
+            // Then confirm the turn (with no spell selected)
+            onConfirmSpell();
+          }}
+          className="px-4 py-2 bg-gray-400 hover:bg-gray-500 text-white rounded cursor-pointer"
+        >
+          Pass Turn
+        </button>
+      </div>
     </div>
   );
 }
