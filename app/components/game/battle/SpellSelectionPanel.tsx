@@ -25,6 +25,13 @@ export default function SpellSelectionPanel({
   // Get the player's remaining spell uses
   const playerSpellUses = gameState.spellUsesRemaining[player.id] || {};
 
+  // Check if the player has any spells charging
+  const isSpellCharging = (spellId: string) => {
+    return gameState.chargingSpells.some(
+      (s) => s.spellId === spellId && s.playerId === player.id
+    );
+  };
+
   return (
     <div className="mt-4">
       <h2 className="text-xl font-semibold mb-2">Select a Spell</h2>
@@ -44,21 +51,33 @@ export default function SpellSelectionPanel({
             const usesRemaining = playerSpellUses[spellId] || 0;
             const hasUsesLeft = usesRemaining > 0;
 
-            // Determine if spell is usable
-            const isUsable = hasEnoughMagia && hasUsesLeft;
+            // Check if spell is currently charging
+            const isCharging = isSpellCharging(spellId);
+
+            // Determine if spell is usable (add !isCharging condition)
+            const isUsable = hasEnoughMagia && hasUsesLeft && !isCharging;
+
+            // Use a special style for charging spells
+            let spellCardClasses = "border p-3 rounded ";
+
+            if (
+              player.selectedSpellId === spell.id &&
+              !player.isSelectedSpellInnate
+            ) {
+              spellCardClasses += "bg-blue-100 border-blue-500";
+            } else if (isCharging) {
+              spellCardClasses +=
+                "opacity-50 cursor-not-allowed bg-yellow-100 border-yellow-500";
+            } else if (isUsable) {
+              spellCardClasses += "hover:bg-blue-50 cursor-pointer";
+            } else {
+              spellCardClasses += "opacity-50 cursor-not-allowed bg-gray-100";
+            }
 
             return (
               <div
                 key={spell.id}
-                className={`border p-3 rounded 
-                  ${
-                    player.selectedSpellId === spell.id &&
-                    !player.isSelectedSpellInnate
-                      ? "bg-blue-100 border-blue-500"
-                      : isUsable
-                      ? "hover:bg-blue-50 cursor-pointer"
-                      : "opacity-50 cursor-not-allowed bg-gray-100"
-                  }`}
+                className={spellCardClasses}
                 onClick={() => {
                   // Only allow selection if spell is usable
                   if (!isUsable) return;
@@ -98,10 +117,36 @@ export default function SpellSelectionPanel({
                       : spell.usesPerBattle}
                   </div>
                 </div>
+                {/* Show why the spell can't be used */}
                 {!isUsable && (
-                  <div className="text-xs text-red-500 mt-1">
-                    {!hasEnoughMagia && "Not enough magia!"}
-                    {!hasUsesLeft && "No uses remaining!"}
+                  <div className="text-xs mt-1">
+                    {!hasEnoughMagia && (
+                      <span className="text-red-500">Not enough magia! </span>
+                    )}
+                    {!hasUsesLeft && (
+                      <span className="text-red-500">No uses remaining! </span>
+                    )}
+                    {isCharging && (
+                      <span className="text-yellow-600 font-bold">
+                        Charging...{" "}
+                        {
+                          gameState.chargingSpells.find(
+                            (s) =>
+                              s.spellId === spell.id && s.playerId === player.id
+                          )?.remainingTurns
+                        }{" "}
+                        turns remaining
+                      </span>
+                    )}
+                  </div>
+                )}
+
+                {/* Always show cast time for spells that need charging */}
+                {spell.castingTime > 0 && (
+                  <div className="text-xs text-gray-500 mt-1">
+                    Cast Time: {spell.castingTime}{" "}
+                    {spell.castingTime === 1 ? "turn" : "turns"}
+                    {spell.castingTime > 1 ? "t" : ""}
                   </div>
                 )}
               </div>

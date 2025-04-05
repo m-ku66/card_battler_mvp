@@ -87,22 +87,41 @@ export class CombatSystem {
       },
     }));
 
-    // Execute each spell in order
-    // spellActions.forEach((action) => {
-    //   this.executeSpell(action.casterId, action.casterMageId!, action.spellId);
-    // });
+    // Execute ready charged spells first
+    if (
+      gameState.readyChargedSpells &&
+      gameState.readyChargedSpells.length > 0
+    ) {
+      console.log(
+        "Executing ready charged spells:",
+        gameState.readyChargedSpells
+      );
+
+      for (const spell of gameState.readyChargedSpells) {
+        // Add a small delay for dramatic effect
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+
+        // Execute the spell
+        this.executeChargedSpell(
+          spell.playerId,
+          spell.mageId,
+          spell.spellId,
+          spell.isInnate
+        );
+      }
+
+      // Clear the ready charged spells list
+      useGameStore.setState((state) => ({
+        gameState: {
+          ...state.gameState,
+          readyChargedSpells: [],
+        },
+      }));
+    }
 
     // Execute each spell with a delay between them
     for (let i = 0; i < spellActions.length; i++) {
       const action = spellActions[i];
-
-      // Log that we're starting a spell execution IF you want duplicate logs LOL
-      // this.logCombatEvent(GameEventType.SPELL_CAST, {
-      //   casterId: action.casterMageId,
-      //   targetId: this.getTargetMageId(action.casterId),
-      //   spellId: action.spellId,
-      //   effects: gameState.spells[action.spellId]?.effects || [],
-      // });
 
       // Execute the spell
       this.executeSpell(action.casterId, action.casterMageId!, action.spellId);

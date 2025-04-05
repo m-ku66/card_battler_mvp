@@ -245,27 +245,27 @@ export class TurnSystem {
     return playerId;
   }
 
+  // app/core/systems/TurnSystem.ts
   public processChargingSpells(): void {
     const gameState = this.getGameState();
     const updatedChargingSpells: ChargingSpell[] = [];
+    const spellsToExecute: ChargingSpell[] = [];
 
     for (const spell of gameState.chargingSpells) {
       // Decrement the remaining turns
       const remainingTurns = spell.remainingTurns - 1;
 
       if (remainingTurns <= 0) {
-        // Spell is ready to cast!
-        console.log(
-          `Casting charged spell ${spell.spellId} for player ${spell.playerId}`
-        );
+        // Spell is ready to cast, but we'll queue it for execution phase
+        spellsToExecute.push(spell);
 
-        // Execute the spell - we need to add this method to CombatSystem
-        this.executeChargedSpell(
-          spell.playerId,
-          spell.mageId,
-          spell.spellId,
-          spell.isInnate
-        );
+        // Log that the spell is ready to cast
+        this.logCombatEvent(GameEventType.SPELL_CAST, {
+          casterId: spell.mageId,
+          spellId: spell.spellId,
+          isCharged: true, // Important flag for the UI!
+          effects: gameState.spells[spell.spellId]?.effects || [],
+        });
       } else {
         // Spell is still charging
         updatedChargingSpells.push({
@@ -273,7 +273,7 @@ export class TurnSystem {
           remainingTurns,
         });
 
-        // Add a log entry to show spell is still charging
+        // Log that the spell is still charging
         this.logCombatEvent(GameEventType.SPELL_CAST, {
           casterId: spell.mageId,
           spellId: spell.spellId,
@@ -283,11 +283,12 @@ export class TurnSystem {
       }
     }
 
-    // Update charging spells in game state
+    // Update game state with both arrays
     useGameStore.setState((state) => ({
       gameState: {
         ...state.gameState,
         chargingSpells: updatedChargingSpells,
+        readyChargedSpells: spellsToExecute,
       },
     }));
   }

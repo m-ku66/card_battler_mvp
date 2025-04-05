@@ -68,6 +68,7 @@ const initialGameState: GameState = {
   spellUsesRemaining: {}, // Will be populated when the game starts
   combatLog: [], // Initialize empty combat log
   chargingSpells: [], // Spells that are currently charging
+  readyChargedSpells: [], // A queue of spells that are ready to be cast
 };
 
 // Create the store
@@ -272,67 +273,6 @@ export const useGameStore = create<GameStore>((set, get) => ({
       turnSystem.setPhase("battle");
     }
   },
-
-  // endTurn: () => {
-  //   const { turnSystem, gameState } = get();
-
-  //   // First, check all players for invalid spell selections
-  //   gameState.players.forEach((player) => {
-  //     // Skip if no spell is selected
-  //     if (!player.selectedSpellId) return;
-
-  //     // Get the spell and mage
-  //     const spell = gameState.spells[player.selectedSpellId];
-  //     const mage = player.selectedMageId
-  //       ? gameState.mages[player.selectedMageId]
-  //       : null;
-  //     if (!spell || !mage) return;
-
-  //     // Calculate magia cost with innate discount if applicable
-  //     const isInnate =
-  //       player.isSelectedSpellInnate &&
-  //       mage.innateSpellId === player.selectedSpellId;
-  //     const magiaCost = isInnate
-  //       ? Math.floor(spell.magiaCost * 0.5)
-  //       : spell.magiaCost;
-
-  //     // Check if there's enough magia
-  //     const hasEnoughMagia = mage.magia >= magiaCost;
-
-  //     // Check if there are uses left (only matters for non-innate spells)
-  //     const usesRemaining = isInnate
-  //       ? Infinity
-  //       : gameState.spellUsesRemaining[player.id][player.selectedSpellId] || 0;
-  //     const hasUsesLeft = usesRemaining > 0;
-
-  //     // If the spell is now invalid, deselect it
-  //     if (!hasEnoughMagia || !hasUsesLeft) {
-  //       // Deselect the spell
-  //       set((state) => ({
-  //         gameState: {
-  //           ...state.gameState,
-  //           players: state.gameState.players.map((p) =>
-  //             p.id === player.id
-  //               ? { ...p, selectedSpellId: null, isSelectedSpellInnate: false }
-  //               : p
-  //           ),
-  //         },
-  //       }));
-
-  //       // Log the reason
-  //       console.log(
-  //         `Deselected ${spell.name} for ${player.name} because ${
-  //           !hasEnoughMagia ? "not enough magia" : "no uses left"
-  //         }`
-  //       );
-  //     }
-  //   });
-
-  //   // Then proceed with the turn
-  //   if (turnSystem) {
-  //     turnSystem.endTurn();
-  //   }
-  // },
 
   endTurn: () => {
     const { turnSystem, gameState } = get();

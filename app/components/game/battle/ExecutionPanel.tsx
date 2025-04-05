@@ -64,8 +64,8 @@ export default function ExecutionPanel() {
   };
 
   // Get the CSS class for an event type
-  const getEventClass = (eventType: GameEventType) => {
-    switch (eventType) {
+  const getEventClass = (entry: CombatLogEntry) => {
+    switch (entry.eventType) {
       case GameEventType.DAMAGE_DEALT:
         return "bg-red-100";
       case GameEventType.HEALING_RECEIVED:
@@ -73,6 +73,8 @@ export default function ExecutionPanel() {
       case GameEventType.STATUS_APPLIED:
         return "bg-purple-100";
       case GameEventType.SPELL_CAST:
+        if (entry.data.isCharging) return "bg-yellow-100";
+        if (entry.data.isCharged) return "bg-green-100";
         return "bg-blue-100";
       case GameEventType.MAGE_DEFEATED:
         return "bg-gray-100 font-bold";
@@ -122,7 +124,7 @@ export default function ExecutionPanel() {
               <li
                 key={entry.id}
                 className={`p-2 rounded transition-all duration-300 animate-fadeIn ${getEventClass(
-                  entry.eventType
+                  entry
                 )}`}
               >
                 {formatLogEntry(entry)}

@@ -34,4 +34,5 @@ export interface GameState {
   spellUsesRemaining: Record<string, Record<string, number>>; // playerId -> spellId -> uses remaining
   combatLog: CombatLogEntry[]; // Log of all combat events
   chargingSpells: ChargingSpell[]; // Spells that are currently charging
+  readyChargedSpells: ChargingSpell[]; // A queue of spells that are ready to be cast
 }
