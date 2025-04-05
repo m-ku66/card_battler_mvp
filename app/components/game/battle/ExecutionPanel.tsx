@@ -1,44 +1,12 @@
-// "use client";
-
-// export default function ExecutionPanel() {
-//   return (
-//     <div className="mt-4">
-//       <h2 className="text-xl font-semibold mb-2">Spells Executing...</h2>
-//       <div className="p-4 bg-gray-50 rounded">
-//         <p>Watch as the spells take effect!</p>
-//         {/* We could add animations or visual effects here */}
-//       </div>
-//     </div>
-//   );
-// }
-
 "use client";
 import { useState, useEffect } from "react";
-import { useGameEvent } from "@/app/hooks/useGameEvents";
 import { GameEventType } from "@/app/core/events/Events";
 import { useGameStore } from "@/app/store/gameStore";
-
-// This will store and format battle events for display
-type BattleLogEntry = {
-  id: string;
-  message: string;
-  type:
-    | "damage"
-    | "heal"
-    | "status"
-    | "spell"
-    | "defeat"
-    | "critical"
-    | "affinity";
-  timestamp: number;
-};
+import { CombatLogEntry } from "@/app/core/models/Game";
 
 export default function ExecutionPanel() {
-  // Get access to game state
   const { gameState } = useGameStore();
-
-  // Store the battle events as they come in
-  const [battleLog, setBattleLog] = useState<BattleLogEntry[]>([]);
+  const [currentLogIndex, setCurrentLogIndex] = useState(0);
 
   // Helper to get mage name from ID
   const getMageName = (mageId: string) => {
@@ -50,86 +18,76 @@ export default function ExecutionPanel() {
     return gameState.spells[spellId]?.name || spellId;
   };
 
-  // Listen for spell cast events
-  useGameEvent(GameEventType.SPELL_CAST, (data) => {
-    setBattleLog((prev) => [
-      ...prev,
-      {
-        id: `spell-${Date.now()}`,
-        message: `${getMageName(data.casterId)} cast ${getSpellName(
+  // Format a combat log entry into a human-readable message
+  const formatLogEntry = (entry: CombatLogEntry) => {
+    const { eventType, data } = entry;
+
+    switch (eventType) {
+      case GameEventType.SPELL_CAST:
+        return `${getMageName(data.casterId)} cast ${getSpellName(
           data.spellId
-        )}!`,
-        type: "spell",
-        timestamp: Date.now(),
-      },
-    ]);
-  });
+        )}!`;
 
-  // Listen for damage events
-  useGameEvent(GameEventType.DAMAGE_DEALT, (data) => {
-    setBattleLog((prev) => [
-      ...prev,
-      {
-        id: `damage-${Date.now()}`,
-        message: `${getMageName(data.sourceId)} dealt ${
+      case GameEventType.DAMAGE_DEALT:
+        return `${getMageName(data.sourceId)} dealt ${
           data.amount
-        } damage to ${getMageName(data.targetId)}!`,
-        type: "damage",
-        timestamp: Date.now(),
-      },
-    ]);
-  });
+        } damage to ${getMageName(data.targetId)}!`;
 
-  // Listen for healing events
-  useGameEvent(GameEventType.HEALING_RECEIVED, (data) => {
-    setBattleLog((prev) => [
-      ...prev,
-      {
-        id: `heal-${Date.now()}`,
-        message: `${getMageName(data.targetId)} recovered ${
-          data.amount
-        } health!`,
-        type: "heal",
-        timestamp: Date.now(),
-      },
-    ]);
-  });
+      case GameEventType.HEALING_RECEIVED:
+        return `${getMageName(data.targetId)} recovered ${data.amount} health!`;
 
-  // Listen for status application
-  useGameEvent(GameEventType.STATUS_APPLIED, (data) => {
-    setBattleLog((prev) => [
-      ...prev,
-      {
-        id: `status-${Date.now()}`,
-        message: `${getMageName(data.targetId)} was afflicted with ${
+      case GameEventType.STATUS_APPLIED:
+        return `${getMageName(data.targetId)} was afflicted with ${
           data.statusType
-        } for ${data.duration} turns!`,
-        type: "status",
-        timestamp: Date.now(),
-      },
-    ]);
-  });
+        } for ${data.duration} turns!`;
 
-  // Listen for mage defeat
-  useGameEvent(GameEventType.MAGE_DEFEATED, (data) => {
-    setBattleLog((prev) => [
-      ...prev,
-      {
-        id: `defeat-${Date.now()}`,
-        message: `${getMageName(data.mageId)} has been defeated!`,
-        type: "defeat",
-        timestamp: Date.now(),
-      },
-    ]);
-  });
+      case GameEventType.MAGE_DEFEATED:
+        return `${getMageName(data.mageId)} has been defeated!`;
 
-  // Auto-scroll to the bottom when new messages appear
+      default:
+        return `Combat action occurred: ${eventType}`;
+    }
+  };
+
+  // Get the CSS class for an event type
+  const getEventClass = (eventType: GameEventType) => {
+    switch (eventType) {
+      case GameEventType.DAMAGE_DEALT:
+        return "bg-red-100";
+      case GameEventType.HEALING_RECEIVED:
+        return "bg-green-100";
+      case GameEventType.STATUS_APPLIED:
+        return "bg-purple-100";
+      case GameEventType.SPELL_CAST:
+        return "bg-blue-100";
+      case GameEventType.MAGE_DEFEATED:
+        return "bg-gray-100 font-bold";
+      default:
+        return "";
+    }
+  };
+
+  // Auto-advance through the log entries with animation
+  useEffect(() => {
+    if (currentLogIndex < gameState.combatLog.length) {
+      const timer = setTimeout(() => {
+        setCurrentLogIndex((prev) => prev + 1);
+      }, 800); // Show a new message every 800ms
+
+      return () => clearTimeout(timer);
+    }
+  }, [currentLogIndex, gameState.combatLog.length]);
+
+  // Auto-scroll to the bottom when new entries appear
   useEffect(() => {
     const logContainer = document.getElementById("battle-log-container");
     if (logContainer) {
       logContainer.scrollTop = logContainer.scrollHeight;
     }
-  }, [battleLog]);
+  }, [currentLogIndex]);
+
+  // Only display events up to the current index
+  const visibleLogEntries = gameState.combatLog.slice(0, currentLogIndex);
 
   return (
     <div className="mt-4">
@@ -138,34 +96,22 @@ export default function ExecutionPanel() {
         id="battle-log-container"
         className="p-4 bg-gray-50 rounded max-h-60 overflow-y-auto"
       >
-        {battleLog.length === 0 ? (
+        {visibleLogEntries.length === 0 ? (
           <p className="text-center text-gray-500">
-            Preparing to execute spells...
+            {gameState.combatLog.length > 0
+              ? "Executing spells..."
+              : "Preparing for combat..."}
           </p>
         ) : (
           <ul className="space-y-2">
-            {battleLog.map((entry) => (
+            {visibleLogEntries.map((entry) => (
               <li
                 key={entry.id}
-                className={`p-2 rounded transition-all duration-300 animate-fadeIn ${
-                  entry.type === "damage"
-                    ? "bg-red-100"
-                    : entry.type === "critical"
-                    ? "bg-orange-100 font-bold"
-                    : entry.type === "heal"
-                    ? "bg-green-100"
-                    : entry.type === "status"
-                    ? "bg-purple-100"
-                    : entry.type === "spell"
-                    ? "bg-blue-100"
-                    : entry.type === "affinity"
-                    ? "bg-yellow-100"
-                    : entry.type === "defeat"
-                    ? "bg-gray-100 font-bold"
-                    : ""
-                }`}
+                className={`p-2 rounded transition-all duration-300 animate-fadeIn ${getEventClass(
+                  entry.eventType
+                )}`}
               >
-                {entry.message}
+                {formatLogEntry(entry)}
               </li>
             ))}
           </ul>

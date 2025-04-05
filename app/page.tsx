@@ -24,15 +24,26 @@ export default function GamePage() {
   useEffect(() => {
     // Only run this effect in execution phase
     if (gameState.phase === "battle" && gameState.battlePhase === "execution") {
+      // Calculate a delay based on combat log length (minimum 2 seconds)
+      const baseDelay = 2000; // Base delay of 2 seconds
+      const perActionDelay = 1000; // Additional 1 second per combat action
+      const totalDelay =
+        baseDelay + gameState.combatLog.length * perActionDelay;
+
       // Set a timer to automatically progress to the next turn
       const timer = setTimeout(() => {
         console.log("Auto-advancing from execution phase");
         endTurn();
-      }, 2000); // 2 second delay
+      }, totalDelay);
 
       return () => clearTimeout(timer);
     }
-  }, [gameState.phase, gameState.battlePhase, endTurn]);
+  }, [
+    gameState.phase,
+    gameState.battlePhase,
+    gameState.combatLog.length,
+    endTurn,
+  ]);
 
   // Get the player ID (we'll use the first player for now)
   const playerId = gameState.players[0]?.id || "";

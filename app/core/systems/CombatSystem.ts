@@ -15,7 +15,7 @@ export class CombatSystem {
   /**
    * Process all spells selected for the current turn
    */
-  executeSpells(): void {
+  async executeSpells(): Promise<void> {
     const gameState = this.getGameState();
     // Debug: Log player states to see what spells are selected
     console.log(
@@ -79,10 +79,46 @@ export class CombatSystem {
 
     console.log("Executing spells in order:", spellActions);
 
+    // Clear any existing combat log for this turn
+    useGameStore.setState((state) => ({
+      gameState: {
+        ...state.gameState,
+        combatLog: [],
+      },
+    }));
+
     // Execute each spell in order
-    spellActions.forEach((action) => {
+    // spellActions.forEach((action) => {
+    //   this.executeSpell(action.casterId, action.casterMageId!, action.spellId);
+    // });
+
+    // Execute each spell with a delay between them
+    for (let i = 0; i < spellActions.length; i++) {
+      const action = spellActions[i];
+
+      // Log that we're starting a spell execution
+      this.logCombatEvent(GameEventType.SPELL_CAST, {
+        casterId: action.casterMageId,
+        targetId: this.getTargetMageId(action.casterId),
+        spellId: action.spellId,
+        effects: gameState.spells[action.spellId]?.effects || [],
+      });
+
+      // Execute the spell
       this.executeSpell(action.casterId, action.casterMageId!, action.spellId);
-    });
+
+      // Wait before executing the next spell (except for the last one)
+      if (i < spellActions.length - 1) {
+        await new Promise((resolve) => setTimeout(resolve, 1000)); // 1 second delay
+      }
+    }
+  }
+
+  // Helper method to find the target mage ID for a caster
+  private getTargetMageId(casterId: string): string {
+    const gameState = this.getGameState();
+    const targetPlayer = gameState.players.find((p) => p.id !== casterId);
+    return targetPlayer?.selectedMageId || "";
   }
 
   /**
@@ -166,20 +202,21 @@ export class CombatSystem {
 
     // Consume magia (using the calculated cost)
     casterMage.magia -= actualMagiaCost;
-    eventBus.emit(GameEventType.MAGIA_CONSUMED, {
+
+    this.logCombatEvent(GameEventType.MAGIA_CONSUMED, {
       mageId: casterMageId,
       amount: actualMagiaCost,
       newMagia: casterMage.magia,
     });
 
-    // Emit spell cast event
-    eventBus.emit(GameEventType.SPELL_CAST, {
+    this.logCombatEvent(GameEventType.SPELL_CAST, {
       casterId: casterMageId,
       targetId: targetMageId,
       spellId: spellId,
       effects: spell.effects.map((effect) => ({
         type: effect.type,
         value: effect.value,
+        name: effect.name,
       })),
     });
 
@@ -202,10 +239,12 @@ export class CombatSystem {
       });
 
       // Check if game is over
-      eventBus.emit(GameEventType.GAME_OVER, {
+
+      this.logCombatEvent(GameEventType.GAME_OVER, {
         winnerId: casterId,
         reason: `${targetMage.name} was defeated`,
       });
+      console.log(`${targetMage.name} has been defeated!`);
     }
   }
 
@@ -229,7 +268,7 @@ export class CombatSystem {
         );
         caster.health = Math.min(caster.health + healAmount, caster.maxHealth);
 
-        eventBus.emit(GameEventType.HEALING_RECEIVED, {
+        this.logCombatEvent(GameEventType.HEALING_RECEIVED, {
           targetId: caster.id,
           amount: healAmount,
           newHealth: caster.health,
@@ -248,11 +287,12 @@ export class CombatSystem {
           this.applyDamage(caster, target, spell);
         }
 
-        eventBus.emit(GameEventType.STATUS_APPLIED, {
+        this.logCombatEvent(GameEventType.STATUS_APPLIED, {
           targetId: target.id,
           statusType: effect.name || "unknown",
-          duration: effect.duration || 3,
+          duration: effect.duration || 0,
           sourceId: caster.id,
+          spellId: spell.id,
         });
         break;
 
@@ -295,8 +335,7 @@ export class CombatSystem {
       `${caster.name} dealt ${resistedDamage} damage to ${target.name}`
     );
 
-    // Emit damage event
-    eventBus.emit(GameEventType.DAMAGE_DEALT, {
+    this.logCombatEvent(GameEventType.DAMAGE_DEALT, {
       targetId: target.id,
       amount: resistedDamage,
       newHealth: target.health,
@@ -335,5 +374,33 @@ export class CombatSystem {
     }
 
     return 1.0; // Normal damage for other combinations
+  }
+
+  // This method is used to log combat events in the game
+  // It creates a unique ID for each event and adds it to the combat log in the store
+  private logCombatEvent(eventType: GameEventType, data: any): void {
+    // Create a unique ID for this event
+    const eventId = `${eventType}-${Date.now()}-${Math.random()
+      .toString(36)
+      .substring(2, 7)}`;
+
+    // Add the event to the combat log in the store
+    useGameStore.setState((state) => ({
+      gameState: {
+        ...state.gameState,
+        combatLog: [
+          ...state.gameState.combatLog,
+          {
+            id: eventId,
+            eventType,
+            data,
+            timestamp: Date.now(),
+          },
+        ],
+      },
+    }));
+
+    // Also emit the event through the event bus (for backward compatibility)
+    eventBus.emit(eventType, data);
   }
 }

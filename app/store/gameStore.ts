@@ -66,6 +66,7 @@ const initialGameState: GameState = {
   turnOrder: [],
   winner: null,
   spellUsesRemaining: {}, // Will be populated when the game starts
+  combatLog: [], // Initialize empty combat log
 };
 
 // Create the store

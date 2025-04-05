@@ -3,9 +3,16 @@ import { Mage } from "./Mage";
 import { Player } from "./Player";
 import { Spell } from "./Spell";
 import { Grimoire } from "./Grimoire";
+import { GameEventType } from "../events/Events";
 
 export type GamePhase = "preparation" | "battle" | "result";
 export type BattlePhase = "spellSelection" | "execution";
+export type CombatLogEntry = {
+  id: string;
+  eventType: GameEventType;
+  data: any; // We'll store the original event data
+  timestamp: number;
+};
 
 export interface GameState {
   phase: GamePhase;
@@ -18,4 +25,5 @@ export interface GameState {
   turnOrder: string[]; // Player IDs in order of their turn
   winner: string | null;
   spellUsesRemaining: Record<string, Record<string, number>>; // playerId -> spellId -> uses remaining
+  combatLog: CombatLogEntry[]; // Log of all combat events
 }
