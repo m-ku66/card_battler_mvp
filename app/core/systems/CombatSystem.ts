@@ -114,6 +114,75 @@ export class CombatSystem {
     }
   }
 
+  /**
+   * Execute a charged spell
+   */
+  // In CombatSystem.ts
+  public executeChargedSpell(
+    playerId: string,
+    mageId: string,
+    spellId: string,
+    isInnate: boolean
+  ): void {
+    // Similar to executeSpell but we don't need to check magia cost or uses
+    // since they were already consumed when the charging began
+    const gameState = this.getGameState();
+
+    const casterMage = gameState.mages[mageId];
+    if (!casterMage) return;
+
+    const spell = gameState.spells[spellId];
+    if (!spell) return;
+
+    // Find target player
+    const targetPlayerId = gameState.players.find((p) => p.id !== playerId)?.id;
+    if (!targetPlayerId) return;
+
+    const targetPlayer = gameState.players.find((p) => p.id === targetPlayerId);
+    if (!targetPlayer || !targetPlayer.selectedMageId) return;
+
+    const targetMageId = targetPlayer.selectedMageId;
+    const targetMage = gameState.mages[targetMageId];
+    if (!targetMage) return;
+
+    // Log that the spell is now being cast
+    this.logCombatEvent(GameEventType.SPELL_CAST, {
+      casterId: mageId,
+      targetId: targetMageId,
+      spellId: spellId,
+      effects: spell.effects.map((effect) => ({
+        type: effect.type,
+        value: effect.value,
+        name: effect.name,
+      })),
+      isCharged: true,
+    });
+
+    // Apply spell effects
+    spell.effects.forEach((effect) => {
+      this.applySpellEffect(effect, casterMage, targetMage, spell);
+    });
+
+    // If no effects, apply default damage based on spell power
+    if (spell.effects.length === 0 && spell.type === "attack") {
+      this.applyDamage(casterMage, targetMage, spell);
+    }
+
+    // Check if target is defeated
+    if (targetMage.health <= 0) {
+      targetMage.health = 0;
+      this.logCombatEvent(GameEventType.MAGE_DEFEATED, {
+        mageId: targetMageId,
+        playerId: targetPlayerId,
+      });
+
+      this.logCombatEvent(GameEventType.GAME_OVER, {
+        winnerId: playerId,
+        reason: `${targetMage.name} was defeated`,
+      });
+    }
+  }
+
   // Helper method to find the target mage ID for a caster
   private getTargetMageId(casterId: string): string {
     const gameState = this.getGameState();
@@ -378,7 +447,7 @@ export class CombatSystem {
 
   // This method is used to log combat events in the game
   // It creates a unique ID for each event and adds it to the combat log in the store
-  private logCombatEvent(eventType: GameEventType, data: any): void {
+  public logCombatEvent(eventType: GameEventType, data: any): void {
     // Create a unique ID for this event
     const eventId = `${eventType}-${Date.now()}-${Math.random()
       .toString(36)

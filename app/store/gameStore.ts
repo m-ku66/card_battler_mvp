@@ -67,6 +67,7 @@ const initialGameState: GameState = {
   winner: null,
   spellUsesRemaining: {}, // Will be populated when the game starts
   combatLog: [], // Initialize empty combat log
+  chargingSpells: [], // Spells that are currently charging
 };
 
 // Create the store
@@ -231,12 +232,6 @@ export const useGameStore = create<GameStore>((set, get) => ({
     });
   },
 
-  // startBattle: () => {
-  //   const { turnSystem } = get();
-  //   if (turnSystem) {
-  //     turnSystem.setPhase("battle");
-  //   }
-  // },
   startBattle: () => {
     const { turnSystem, gameState } = get();
 
@@ -279,68 +274,167 @@ export const useGameStore = create<GameStore>((set, get) => ({
   },
 
   // endTurn: () => {
-  //   const { turnSystem } = get();
+  //   const { turnSystem, gameState } = get();
+
+  //   // First, check all players for invalid spell selections
+  //   gameState.players.forEach((player) => {
+  //     // Skip if no spell is selected
+  //     if (!player.selectedSpellId) return;
+
+  //     // Get the spell and mage
+  //     const spell = gameState.spells[player.selectedSpellId];
+  //     const mage = player.selectedMageId
+  //       ? gameState.mages[player.selectedMageId]
+  //       : null;
+  //     if (!spell || !mage) return;
+
+  //     // Calculate magia cost with innate discount if applicable
+  //     const isInnate =
+  //       player.isSelectedSpellInnate &&
+  //       mage.innateSpellId === player.selectedSpellId;
+  //     const magiaCost = isInnate
+  //       ? Math.floor(spell.magiaCost * 0.5)
+  //       : spell.magiaCost;
+
+  //     // Check if there's enough magia
+  //     const hasEnoughMagia = mage.magia >= magiaCost;
+
+  //     // Check if there are uses left (only matters for non-innate spells)
+  //     const usesRemaining = isInnate
+  //       ? Infinity
+  //       : gameState.spellUsesRemaining[player.id][player.selectedSpellId] || 0;
+  //     const hasUsesLeft = usesRemaining > 0;
+
+  //     // If the spell is now invalid, deselect it
+  //     if (!hasEnoughMagia || !hasUsesLeft) {
+  //       // Deselect the spell
+  //       set((state) => ({
+  //         gameState: {
+  //           ...state.gameState,
+  //           players: state.gameState.players.map((p) =>
+  //             p.id === player.id
+  //               ? { ...p, selectedSpellId: null, isSelectedSpellInnate: false }
+  //               : p
+  //           ),
+  //         },
+  //       }));
+
+  //       // Log the reason
+  //       console.log(
+  //         `Deselected ${spell.name} for ${player.name} because ${
+  //           !hasEnoughMagia ? "not enough magia" : "no uses left"
+  //         }`
+  //       );
+  //     }
+  //   });
+
+  //   // Then proceed with the turn
   //   if (turnSystem) {
   //     turnSystem.endTurn();
   //   }
   // },
-  // In app/store/gameStore.ts
+
   endTurn: () => {
     const { turnSystem, gameState } = get();
 
-    // First, check all players for invalid spell selections
+    // First, check all players for spell selections with casting time
     gameState.players.forEach((player) => {
       // Skip if no spell is selected
       if (!player.selectedSpellId) return;
 
-      // Get the spell and mage
       const spell = gameState.spells[player.selectedSpellId];
       const mage = player.selectedMageId
         ? gameState.mages[player.selectedMageId]
         : null;
+
       if (!spell || !mage) return;
 
-      // Calculate magia cost with innate discount if applicable
-      const isInnate =
-        player.isSelectedSpellInnate &&
-        mage.innateSpellId === player.selectedSpellId;
-      const magiaCost = isInnate
-        ? Math.floor(spell.magiaCost * 0.5)
-        : spell.magiaCost;
+      // Check if this is a charging spell (casting time > 0)
+      if (spell.castingTime > 0) {
+        // Add to charging spells instead of executing immediately
+        console.log(
+          `Adding spell ${spell.name} to charging queue for ${player.id}`
+        );
 
-      // Check if there's enough magia
-      const hasEnoughMagia = mage.magia >= magiaCost;
-
-      // Check if there are uses left (only matters for non-innate spells)
-      const usesRemaining = isInnate
-        ? Infinity
-        : gameState.spellUsesRemaining[player.id][player.selectedSpellId] || 0;
-      const hasUsesLeft = usesRemaining > 0;
-
-      // If the spell is now invalid, deselect it
-      if (!hasEnoughMagia || !hasUsesLeft) {
-        // Deselect the spell
-        set((state) => ({
+        // Add spell to charging queue
+        useGameStore.setState((state) => ({
           gameState: {
             ...state.gameState,
+            chargingSpells: [
+              ...state.gameState.chargingSpells,
+              {
+                playerId: player.id,
+                mageId: player.selectedMageId!,
+                spellId: player.selectedSpellId!,
+                remainingTurns: spell.castingTime,
+                isInnate: player.isSelectedSpellInnate,
+              },
+            ],
+            // Clear player's selected spell since it's now charging
             players: state.gameState.players.map((p) =>
               p.id === player.id
                 ? { ...p, selectedSpellId: null, isSelectedSpellInnate: false }
                 : p
             ),
+            // Add to combat log that spell is charging
+            combatLog: [
+              ...state.gameState.combatLog,
+              {
+                id: `spell-charging-${Date.now()}-${Math.random()
+                  .toString(36)
+                  .substring(2, 7)}`,
+                eventType: GameEventType.SPELL_CAST,
+                data: {
+                  casterId: mage.id,
+                  spellId: spell.id,
+                  isCharging: true,
+                  chargingTurns: spell.castingTime,
+                },
+                timestamp: Date.now(),
+              },
+            ],
           },
         }));
 
-        // Log the reason
-        console.log(
-          `Deselected ${spell.name} for ${player.name} because ${
-            !hasEnoughMagia ? "not enough magia" : "no uses left"
-          }`
-        );
+        // Remove spell uses immediately (same as when cast)
+        if (!player.isSelectedSpellInnate) {
+          // Decrement uses like normal
+          useGameStore.setState((state) => {
+            const usesRemaining =
+              state.gameState.spellUsesRemaining[player.id]?.[
+                player.selectedSpellId!
+              ] || 0;
+            return {
+              gameState: {
+                ...state.gameState,
+                spellUsesRemaining: {
+                  ...state.gameState.spellUsesRemaining,
+                  [player.id]: {
+                    ...state.gameState.spellUsesRemaining[player.id],
+                    [player.selectedSpellId!]: Math.max(0, usesRemaining - 1),
+                  },
+                },
+              },
+            };
+          });
+        }
+
+        // Consume magia immediately
+        const magiaCost = player.isSelectedSpellInnate
+          ? Math.floor(spell.magiaCost * 0.5)
+          : spell.magiaCost;
+
+        mage.magia -= magiaCost;
+
+        turnSystem?.logCombatEvent(GameEventType.MAGIA_CONSUMED, {
+          mageId: mage.id,
+          amount: magiaCost,
+          newMagia: mage.magia,
+        });
       }
     });
 
-    // Then proceed with the turn
+    // Then proceed with the normal turn end
     if (turnSystem) {
       turnSystem.endTurn();
     }

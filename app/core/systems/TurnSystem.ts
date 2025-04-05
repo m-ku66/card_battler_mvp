@@ -4,6 +4,7 @@ import { BattlePhase, GamePhase, GameState } from "../models/Game";
 import { Mage } from "../models/Mage";
 import { CombatSystem } from "./CombatSystem";
 import { useGameStore } from "../../store/gameStore";
+import { ChargingSpell } from "../models/Game";
 
 export class TurnSystem {
   private combatSystem: CombatSystem;
@@ -102,46 +103,6 @@ export class TurnSystem {
   /**
    * End the current turn and execute spells when transitioning to execution phase
    */
-  // endTurn(): void {
-  //   const gameState = this.getGameState();
-  //   const currentPlayerId = this.getCurrentPlayerId();
-
-  //   eventBus.emit(GameEventType.TURN_ENDED, {
-  //     turn: gameState.currentTurn,
-  //     playerId: currentPlayerId,
-  //   });
-
-  //   // gameState.currentTurn++;
-  //   eventBus.emit(GameEventType.TURN_ENDED, {
-  //     turn: gameState.currentTurn,
-  //     playerId: currentPlayerId,
-  //   });
-
-  //   // Update turn count in the store (not just in local state)
-  //   useGameStore.setState((state) => ({
-  //     gameState: {
-  //       ...state.gameState,
-  //       currentTurn: state.gameState.currentTurn + 1,
-  //     },
-  //   }));
-
-  //   // If all players have taken a turn, switch battle phase
-  //   if (gameState.currentTurn % gameState.players.length === 0) {
-  //     if (gameState.battlePhase === "spellSelection") {
-  //       this.setBattlePhase("execution");
-
-  //       // Execute all spells when entering execution phase
-  //       this.executeSpells();
-  //     } else {
-  //       this.setBattlePhase("spellSelection");
-
-  //       // Regenerate magia for all mages at the end of a full turn
-  //       this.regenerateMagia();
-  //     }
-  //   }
-
-  //   this.startTurn();
-  // }
   endTurn(): void {
     const gameState = this.getGameState();
     const currentPlayerId = this.getCurrentPlayerId();
@@ -193,6 +154,12 @@ export class TurnSystem {
         previousPhase: "execution",
         currentPhase: "spellSelection",
       });
+
+      // Process charging spells
+      this.processChargingSpells();
+
+      // Process status effects (we'll add this next)
+      // this.processStatusEffects();
 
       // Regenerate magia
       this.regenerateMagia();
@@ -276,6 +243,57 @@ export class TurnSystem {
     );
 
     return playerId;
+  }
+
+  // In TurnSystem.ts, add this method
+  private processChargingSpells(): void {
+    const gameState = this.getGameState();
+    const updatedChargingSpells: ChargingSpell[] = [];
+
+    for (const spell of gameState.chargingSpells) {
+      // Decrement the remaining turns
+      const remainingTurns = spell.remainingTurns - 1;
+
+      if (remainingTurns <= 0) {
+        // Spell is ready to cast!
+        console.log(
+          `Casting charged spell ${spell.spellId} for player ${spell.playerId}`
+        );
+
+        // Execute the spell - we need to add this method to CombatSystem
+        this.combatSystem.executeChargedSpell(
+          spell.playerId,
+          spell.mageId,
+          spell.spellId,
+          spell.isInnate
+        );
+      } else {
+        // Spell is still charging
+        updatedChargingSpells.push({
+          ...spell,
+          remainingTurns,
+        });
+
+        // Add a log entry to show spell is still charging
+        this.combatSystem.logCombatEvent(GameEventType.SPELL_CAST, {
+          casterId: spell.mageId,
+          spellId: spell.spellId,
+          isCharging: true,
+          chargingTurns: remainingTurns,
+        });
+      }
+    }
+
+    // Update charging spells in game state
+    useGameStore.setState((state) => ({
+      gameState: {
+        ...state.gameState,
+        chargingSpells: updatedChargingSpells,
+      },
+    }));
+  }
+  public logCombatEvent(eventType: GameEventType, data: any) {
+    this.combatSystem.logCombatEvent(eventType, data);
   }
 
   /**

@@ -13,6 +13,13 @@ export type CombatLogEntry = {
   data: any; // We'll store the original event data
   timestamp: number;
 };
+export interface ChargingSpell {
+  playerId: string;
+  mageId: string;
+  spellId: string;
+  remainingTurns: number;
+  isInnate: boolean;
+}
 
 export interface GameState {
   phase: GamePhase;
@@ -26,4 +33,5 @@ export interface GameState {
   winner: string | null;
   spellUsesRemaining: Record<string, Record<string, number>>; // playerId -> spellId -> uses remaining
   combatLog: CombatLogEntry[]; // Log of all combat events
+  chargingSpells: ChargingSpell[]; // Spells that are currently charging
 }
