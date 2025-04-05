@@ -415,14 +415,14 @@ export class CombatSystem {
     const criticalChance = caster.wisdom / 100;
     const isCritical = Math.random() < criticalChance;
     if (isCritical) {
-      baseDamage = Math.floor(baseDamage * 1.5);
+      baseDamage = Math.floor(baseDamage * 1.8); // Critical hit multiplier
       console.log(`Critical hit! Damage increased to ${baseDamage}`);
     }
 
     // Apply resistance
     const resistedDamage = Math.max(
       1,
-      Math.floor(baseDamage * (1 - target.resistance / 100))
+      Math.floor(baseDamage * (1 - target.resistance / 100)) // Resistance reduction. Ex: if target has 12 poimts of resistance, damage is reduced by 12%
     );
 
     // Apply damage to target
@@ -454,16 +454,19 @@ export class CombatSystem {
       return 1.5; // Water beats fire
     }
     if (attackerAffinity === "fire" && defenderAffinity === "earth") {
-      return 1.2; // Fire beats earth
+      return 1.2; // Fire slightly beats earth
     }
     if (attackerAffinity === "earth" && defenderAffinity === "lightning") {
       return 0.5; // Earth resists lightning
+    }
+    if (attackerAffinity === "earth" && defenderAffinity === "wind") {
+      return 0.8; // Wind slightly resists earth
     }
     if (attackerAffinity === "lightning" && defenderAffinity === "water") {
       return 1.5; // Lightning beats water
     }
     if (attackerAffinity === "wind" && defenderAffinity === "earth") {
-      return 1.2; // Wind beats earth
+      return 1.2; // Wind slightly beats earth
     }
 
     // Same affinity or no special relationship

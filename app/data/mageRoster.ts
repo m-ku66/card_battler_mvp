@@ -63,7 +63,7 @@ export const mages: Record<string, Mage> = {
     magiaRegenRate: 10,
     agility: 30,
     resistance: 11,
-    wisdom: 50,
+    wisdom: 60,
     attackPower: 10,
     affinity: "wind",
     personality: "cunning",
