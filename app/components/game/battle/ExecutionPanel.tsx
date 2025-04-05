@@ -19,6 +19,7 @@ export default function ExecutionPanel() {
   };
 
   // Format a combat log entry into a human-readable message
+  // In ExecutionPanel.tsx
   const formatLogEntry = (entry: CombatLogEntry) => {
     const { eventType, data } = entry;
 
@@ -32,6 +33,9 @@ export default function ExecutionPanel() {
         return `${getMageName(data.sourceId)} dealt ${
           data.amount
         } damage to ${getMageName(data.targetId)}!`;
+
+      case GameEventType.MAGIA_CONSUMED:
+        return `${getMageName(data.mageId)} used ${data.amount} magia points!`;
 
       case GameEventType.HEALING_RECEIVED:
         return `${getMageName(data.targetId)} recovered ${data.amount} health!`;

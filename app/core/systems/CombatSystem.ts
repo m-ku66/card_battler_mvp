@@ -96,13 +96,13 @@ export class CombatSystem {
     for (let i = 0; i < spellActions.length; i++) {
       const action = spellActions[i];
 
-      // Log that we're starting a spell execution
-      this.logCombatEvent(GameEventType.SPELL_CAST, {
-        casterId: action.casterMageId,
-        targetId: this.getTargetMageId(action.casterId),
-        spellId: action.spellId,
-        effects: gameState.spells[action.spellId]?.effects || [],
-      });
+      // Log that we're starting a spell execution IF you want duplicate logs LOL
+      // this.logCombatEvent(GameEventType.SPELL_CAST, {
+      //   casterId: action.casterMageId,
+      //   targetId: this.getTargetMageId(action.casterId),
+      //   spellId: action.spellId,
+      //   effects: gameState.spells[action.spellId]?.effects || [],
+      // });
 
       // Execute the spell
       this.executeSpell(action.casterId, action.casterMageId!, action.spellId);

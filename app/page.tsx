@@ -24,8 +24,8 @@ export default function GamePage() {
   useEffect(() => {
     // Only run this effect in execution phase
     if (gameState.phase === "battle" && gameState.battlePhase === "execution") {
-      // Calculate a delay based on combat log length (minimum 2 seconds)
-      const baseDelay = 2000; // Base delay of 2 seconds
+      // Calculate a delay based on combat log length (minimum 1 second)
+      const baseDelay = 1000; // Base delay of 1 second
       const perActionDelay = 1000; // Additional 1 second per combat action
       const totalDelay =
         baseDelay + gameState.combatLog.length * perActionDelay;
