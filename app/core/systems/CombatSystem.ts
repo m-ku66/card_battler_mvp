@@ -124,8 +124,6 @@ export class CombatSystem {
     spellId: string,
     isInnate: boolean
   ): void {
-    // Similar to executeSpell but we don't need to check magia cost or uses
-    // since they were already consumed when the charging began
     const gameState = this.getGameState();
 
     const casterMage = gameState.mages[mageId];

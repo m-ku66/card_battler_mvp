@@ -245,8 +245,7 @@ export class TurnSystem {
     return playerId;
   }
 
-  // In TurnSystem.ts, add this method
-  private processChargingSpells(): void {
+  public processChargingSpells(): void {
     const gameState = this.getGameState();
     const updatedChargingSpells: ChargingSpell[] = [];
 
@@ -261,7 +260,7 @@ export class TurnSystem {
         );
 
         // Execute the spell - we need to add this method to CombatSystem
-        this.combatSystem.executeChargedSpell(
+        this.executeChargedSpell(
           spell.playerId,
           spell.mageId,
           spell.spellId,
@@ -275,7 +274,7 @@ export class TurnSystem {
         });
 
         // Add a log entry to show spell is still charging
-        this.combatSystem.logCombatEvent(GameEventType.SPELL_CAST, {
+        this.logCombatEvent(GameEventType.SPELL_CAST, {
           casterId: spell.mageId,
           spellId: spell.spellId,
           isCharging: true,
@@ -291,6 +290,16 @@ export class TurnSystem {
         chargingSpells: updatedChargingSpells,
       },
     }));
+  }
+
+  public executeChargedSpell(
+    playerId: string,
+    mageId: string,
+    spellId: string,
+    isInnate: boolean
+  ): void {
+    // Use CombatSystem to execute the spell
+    this.combatSystem.executeChargedSpell(playerId, mageId, spellId, isInnate);
   }
   public logCombatEvent(eventType: GameEventType, data: any) {
     this.combatSystem.logCombatEvent(eventType, data);

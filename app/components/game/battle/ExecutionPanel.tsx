@@ -19,12 +19,22 @@ export default function ExecutionPanel() {
   };
 
   // Format a combat log entry into a human-readable message
-  // In ExecutionPanel.tsx
   const formatLogEntry = (entry: CombatLogEntry) => {
     const { eventType, data } = entry;
 
     switch (eventType) {
       case GameEventType.SPELL_CAST:
+        if (data.isCharging) {
+          return `${getMageName(data.casterId)} is charging ${getSpellName(
+            data.spellId
+          )}! (${data.chargingTurns} turn${
+            data.chargingTurns > 1 ? "s" : ""
+          } remaining)`;
+        } else if (data.isCharged) {
+          return `${getMageName(data.casterId)}'s ${getSpellName(
+            data.spellId
+          )} finishes charging and fires!`;
+        }
         return `${getMageName(data.casterId)} cast ${getSpellName(
           data.spellId
         )}!`;
