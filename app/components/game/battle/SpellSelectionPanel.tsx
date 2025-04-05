@@ -144,9 +144,8 @@ export default function SpellSelectionPanel({
                 {/* Always show cast time for spells that need charging */}
                 {spell.castingTime > 0 && (
                   <div className="text-xs text-gray-500 mt-1">
-                    Cast Time: {spell.castingTime}{" "}
-                    {spell.castingTime === 1 ? "turn" : "turns"}
-                    {spell.castingTime > 1 ? "t" : ""}
+                    Cast Time: {spell.castingTime} Turn
+                    {spell.castingTime > 1 ? "s" : ""}
                   </div>
                 )}
               </div>

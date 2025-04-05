@@ -24,12 +24,18 @@ export default function ExecutionPanel() {
 
     switch (eventType) {
       case GameEventType.SPELL_CAST:
-        if (data.isCharging) {
-          return `${getMageName(data.casterId)} is charging ${getSpellName(
+        if (data.isInitialCharge) {
+          return `${getMageName(data.casterId)} begins charging ${getSpellName(
             data.spellId
           )}! (${data.chargingTurns} turn${
             data.chargingTurns > 1 ? "s" : ""
           } remaining)`;
+        } else if (data.isCharging) {
+          return `${getMageName(
+            data.casterId
+          )} is still charging ${getSpellName(data.spellId)}! (${
+            data.chargingTurns
+          } turn${data.chargingTurns > 1 ? "s" : ""} remaining)`;
         } else if (data.isCharged) {
           return `${getMageName(data.casterId)}'s ${getSpellName(
             data.spellId
@@ -40,6 +46,11 @@ export default function ExecutionPanel() {
         )}!`;
 
       case GameEventType.DAMAGE_DEALT:
+        if (data.isCharged) {
+          return `CHARGED SPELL: ${getMageName(data.sourceId)} dealt ${
+            data.amount
+          } damage to ${getMageName(data.targetId)}!`;
+        }
         return `${getMageName(data.sourceId)} dealt ${
           data.amount
         } damage to ${getMageName(data.targetId)}!`;
@@ -67,12 +78,16 @@ export default function ExecutionPanel() {
   const getEventClass = (entry: CombatLogEntry) => {
     switch (entry.eventType) {
       case GameEventType.DAMAGE_DEALT:
+        if (entry.data.isCharged) {
+          return "bg-red-200 font-bold"; // Make charged damage stand out more
+        }
         return "bg-red-100";
       case GameEventType.HEALING_RECEIVED:
         return "bg-green-100";
       case GameEventType.STATUS_APPLIED:
         return "bg-purple-100";
       case GameEventType.SPELL_CAST:
+        if (entry.data.isInitialCharge) return "bg-yellow-200"; // Initial charge is brighter
         if (entry.data.isCharging) return "bg-yellow-100";
         if (entry.data.isCharged) return "bg-green-100";
         return "bg-blue-100";

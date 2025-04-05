@@ -289,14 +289,35 @@ export const useGameStore = create<GameStore>((set, get) => ({
 
       if (!spell || !mage) return;
 
-      // Check if this is a charging spell (casting time > 0)
+      // In app/store/gameStore.ts - endTurn function
+      // Inside the code that handles charging spells
+
+      // First, check if this is a charging spell (casting time > 0)
       if (spell.castingTime > 0) {
-        // Add to charging spells instead of executing immediately
         console.log(
           `Adding spell ${spell.name} to charging queue for ${player.id}`
         );
 
-        // Add spell to charging queue
+        // Create a unique ID for this charging spell event
+        const chargeStartEventId = `spell-charging-start-${Date.now()}-${Math.random()
+          .toString(36)
+          .substring(2, 7)}`;
+
+        // Create the charging spell log entry FIRST to ensure it's always recorded
+        const chargingLogEntry = {
+          id: chargeStartEventId,
+          eventType: GameEventType.SPELL_CAST,
+          data: {
+            casterId: mage.id,
+            spellId: spell.id,
+            isCharging: true,
+            chargingTurns: spell.castingTime,
+            isInitialCharge: true, // New flag to indicate this is the start of charging
+          },
+          timestamp: Date.now(),
+        };
+
+        // Update state with both the charging spell and the log entry
         useGameStore.setState((state) => ({
           gameState: {
             ...state.gameState,
@@ -317,22 +338,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
                 : p
             ),
             // Add to combat log that spell is charging
-            combatLog: [
-              ...state.gameState.combatLog,
-              {
-                id: `spell-charging-${Date.now()}-${Math.random()
-                  .toString(36)
-                  .substring(2, 7)}`,
-                eventType: GameEventType.SPELL_CAST,
-                data: {
-                  casterId: mage.id,
-                  spellId: spell.id,
-                  isCharging: true,
-                  chargingTurns: spell.castingTime,
-                },
-                timestamp: Date.now(),
-              },
-            ],
+            combatLog: [...state.gameState.combatLog, chargingLogEntry],
           },
         }));
 

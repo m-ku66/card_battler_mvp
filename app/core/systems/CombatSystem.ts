@@ -177,12 +177,12 @@ export class CombatSystem {
 
     // Apply spell effects
     spell.effects.forEach((effect) => {
-      this.applySpellEffect(effect, casterMage, targetMage, spell);
+      this.applySpellEffect(effect, casterMage, targetMage, spell, true);
     });
 
     // If no effects, apply default damage based on spell power
     if (spell.effects.length === 0 && spell.type === "attack") {
-      this.applyDamage(casterMage, targetMage, spell);
+      this.applyDamage(casterMage, targetMage, spell, true);
     }
 
     // Check if target is defeated
@@ -341,11 +341,12 @@ export class CombatSystem {
     effect: SpellEffect,
     caster: Mage,
     target: Mage,
-    spell: Spell
+    spell: Spell,
+    isCharged: boolean = false
   ): void {
     switch (effect.type) {
       case "damage":
-        this.applyDamage(caster, target, spell);
+        this.applyDamage(caster, target, spell, isCharged);
         break;
 
       case "heal":
@@ -389,9 +390,19 @@ export class CombatSystem {
   /**
    * Apply damage to a target
    */
-  private applyDamage(caster: Mage, target: Mage, spell: Spell): void {
+  private applyDamage(
+    caster: Mage,
+    target: Mage,
+    spell: Spell,
+    isCharged: boolean = false
+  ): void {
     // Basic damage calculation
     let baseDamage = Math.floor((spell.basePower * caster.attackPower) / 100);
+
+    // Add multiplier for charged spells
+    if (isCharged) {
+      baseDamage = baseDamage; // leave alone for now
+    }
 
     // Apply elemental affinity modifiers
     const affinityMultiplier = this.getAffinityMultiplier(
@@ -427,6 +438,7 @@ export class CombatSystem {
       newHealth: target.health,
       sourceId: caster.id,
       spellId: spell.id,
+      isCharged: isCharged, // Pass the charged flag
     });
   }
 
